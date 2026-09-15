@@ -1,0 +1,578 @@
+{
+  "slug": "rag-mastery",
+  "title": "RAG Mastery",
+  "description": "Fixed operator-curated pathway from Tracker's RAG Mastery plan. No per-student curriculum generation.",
+  "version": "1.0.0",
+  "status": "published",
+  "manifest": {
+    "goal_type": "skill",
+    "weekly_hours": 8,
+    "learning_flow": [
+      "Learn the concept",
+      "Read the curated material",
+      "Watch an associated video when present",
+      "Build or practice",
+      "Complete recall and review"
+    ],
+    "source": "tracker-curated-v1",
+    "phases": [
+      {
+        "title": "RAG Mastery",
+        "topics": [
+          {
+            "key": "rag-1",
+            "title": "Naive/Standard RAG — the baseline pipeline (chunk→embed→retrieve→generate)",
+            "description": "Naive/Standard RAG — the baseline pipeline (chunk→embed→retrieve→generate)",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Naive / Standard RAG (foundations)",
+                "url": "https://arxiv.org/abs/2005.11401",
+                "source_type": "paper",
+                "content": "The original Retrieval-Augmented Generation paper (Lewis et al.) + the baseline RAG pipeline: chunk, embed, store, retrieve top-k, stuff into prompt, generate. The naive baseline everything else improves on."
+              }
+            ]
+          },
+          {
+            "key": "rag-2",
+            "title": "Hybrid RAG — BM25 + dense + Reciprocal Rank Fusion",
+            "description": "Hybrid RAG — BM25 + dense + Reciprocal Rank Fusion",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Hybrid RAG — BM25 + Dense + RRF",
+                "url": "https://www.pinecone.io/learn/hybrid-search-intro/",
+                "source_type": "blog",
+                "content": "Combine lexical (BM25/sparse) and semantic (dense) retrieval, fuse with Reciprocal Rank Fusion. Why hybrid beats either alone; weighting and fusion tradeoffs. Matches DocCluster's BM25+cosine."
+              }
+            ]
+          },
+          {
+            "key": "rag-3",
+            "title": "Graph RAG — knowledge-graph retrieval (GraphRAG); compare LightRAG/PageIndex",
+            "description": "Graph RAG — knowledge-graph retrieval (GraphRAG); compare LightRAG/PageIndex",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Graph RAG — Knowledge-Graph Retrieval",
+                "url": "https://github.com/microsoft/graphrag",
+                "source_type": "github",
+                "content": "Microsoft GraphRAG: build an entity/relationship knowledge graph from documents, community-summarize, retrieve over the graph for global/multi-hop questions. Compare to LightRAG (L68) and PageIndex (L8)."
+              }
+            ]
+          },
+          {
+            "key": "rag-4",
+            "title": "Read README, study knowledge graph + dual-level retrieval (global/local); compare vs GraphRAG (L105); integrate as DocCluster alternative backend",
+            "description": "Read README, study knowledge graph + dual-level retrieval (global/local); compare vs GraphRAG (L105); integrate as DocCluster alternative backend",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "LightRAG: Simple and Fast Retrieval-Augmented Generation",
+                "url": "https://github.com/hkuds/lightrag",
+                "source_type": "github",
+                "content": "Open-source RAG system combining knowledge graphs with dual-level retrieval for improved query comprehensiveness, diversity, and empowerment. EMNLP 2025. 67.6% vs 32.4% for NaiveRAG on agriculture domain."
+              }
+            ]
+          },
+          {
+            "key": "rag-5",
+            "title": "Chunking strategies — recursive/semantic/sentence-window/parent-document",
+            "description": "Chunking strategies — recursive/semantic/sentence-window/parent-document",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Chunking Strategies",
+                "url": "https://www.pinecone.io/learn/chunking-strategies/",
+                "source_type": "blog",
+                "content": "Fixed/recursive/semantic/sentence-window/parent-document chunking, overlap, metadata, and how chunking drives retrieval quality. The highest-leverage RAG knob."
+              }
+            ]
+          },
+          {
+            "key": "rag-6",
+            "title": "Embeddings & vector DBs — models, ANN (HNSW/IVF/PQ), FAISS/Chroma/pgvector",
+            "description": "Embeddings & vector DBs — models, ANN (HNSW/IVF/PQ), FAISS/Chroma/pgvector",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Embeddings and Vector Databases (fundamentals)",
+                "url": "https://www.pinecone.io/learn/vector-database/",
+                "source_type": "blog",
+                "content": "Embedding models (MTEB, dims, normalization), ANN indexes (HNSW/IVF/PQ), and vector DBs (FAISS, Chroma, pgvector, Pinecone). What to pick and why for a RAG stack."
+              }
+            ]
+          },
+          {
+            "key": "rag-7",
+            "title": "FAISS hands-on — build IndexFlatL2, IndexIVFFlat, IndexIVFPQ; query and benchmark against DocCluster embeddings",
+            "description": "FAISS hands-on — build IndexFlatL2, IndexIVFFlat, IndexIVFPQ; query and benchmark against DocCluster embeddings",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Introduction to Facebook AI Similarity Search (Faiss) | Pinecone",
+                "url": "https://www.pinecone.io/learn/series/faiss/faiss-tutorial/",
+                "source_type": "blog",
+                "content": "Hands-on FAISS tutorial — efficient similarity search, IndexFlatL2, IndexIVFFlat, IndexIVFPQ. Practical guide to building and querying FAISS indexes for RAG vector retrieval."
+              }
+            ]
+          },
+          {
+            "key": "rag-8",
+            "title": "RAPTOR — recursive hierarchical tree retrieval",
+            "description": "RAPTOR — recursive hierarchical tree retrieval",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "RAPTOR — Recursive Abstractive Tree Retrieval",
+                "url": "https://arxiv.org/abs/2401.18059",
+                "source_type": "paper",
+                "content": "Recursively clusters + summarizes chunks into a hierarchical tree, retrieves across abstraction levels. Stanford, ICLR 2024. Better multi-hop + long-context RAG."
+              }
+            ]
+          },
+          {
+            "key": "rag-9",
+            "title": "Anthropic Contextual Retrieval — contextual embeddings + BM25 + reranking",
+            "description": "Anthropic Contextual Retrieval — contextual embeddings + BM25 + reranking",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Anthropic Contextual Retrieval",
+                "url": "https://www.anthropic.com/news/contextual-retrieval",
+                "source_type": "blog",
+                "content": "Prepend chunk-specific context (via LLM) before embedding/BM25 indexing — cuts failed retrievals up to 67% with reranking. Contextual Embeddings + Contextual BM25."
+              }
+            ]
+          },
+          {
+            "key": "rag-10",
+            "title": "ColBERT / late interaction — reranking, cross-encoder vs bi-encoder",
+            "description": "ColBERT / late interaction — reranking, cross-encoder vs bi-encoder",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "ColBERT — Late-Interaction Retrieval and Reranking",
+                "url": "https://arxiv.org/abs/2004.12832",
+                "source_type": "paper",
+                "content": "Token-level late interaction (MaxSim) for efficient high-recall neural retrieval and reranking. Foundation for cross-encoder vs bi-encoder reranking tradeoffs in RAG."
+              }
+            ]
+          },
+          {
+            "key": "rag-11",
+            "title": "HyDE + query transformation — multi-query, RAG-Fusion, routing",
+            "description": "HyDE + query transformation — multi-query, RAG-Fusion, routing",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "HyDE — Hypothetical Document Embeddings",
+                "url": "https://arxiv.org/abs/2212.10496",
+                "source_type": "paper",
+                "content": "Generate a hypothetical answer doc with an LLM, embed that for retrieval. Zero-shot dense retrieval. Anchor for query transformation (multi-query, RAG-Fusion)."
+              }
+            ]
+          },
+          {
+            "key": "rag-12",
+            "title": "Self-RAG — reflection tokens, retrieve-on-demand, self-critique",
+            "description": "Self-RAG — reflection tokens, retrieve-on-demand, self-critique",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Self-RAG — Self-Reflective Retrieval-Augmented Generation",
+                "url": "https://arxiv.org/abs/2310.11511",
+                "source_type": "paper",
+                "content": "LLM retrieves on-demand and critiques its own output with reflection tokens (retrieve? relevant? supported? useful?). Adaptive retrieval + self-critique. ICLR 2024."
+              }
+            ]
+          },
+          {
+            "key": "rag-13",
+            "title": "Corrective RAG (CRAG) — grade docs, re-retrieve / web-fallback",
+            "description": "Corrective RAG (CRAG) — grade docs, re-retrieve / web-fallback",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Corrective RAG (CRAG)",
+                "url": "https://arxiv.org/abs/2401.15884",
+                "source_type": "paper",
+                "content": "Lightweight retrieval evaluator grades docs (correct/incorrect/ambiguous), triggers re-retrieval or web search + knowledge refinement on low confidence. Plug-and-play."
+              }
+            ]
+          },
+          {
+            "key": "rag-14",
+            "title": "Adaptive-RAG — route by query complexity",
+            "description": "Adaptive-RAG — route by query complexity",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Adaptive-RAG",
+                "url": "https://arxiv.org/abs/2403.14403",
+                "source_type": "paper",
+                "content": "Classifier routes queries by complexity: no-retrieval vs single-step vs iterative multi-step retrieval. Balances accuracy vs cost. NAACL 2024."
+              }
+            ]
+          },
+          {
+            "key": "rag-15",
+            "title": "Build agentic RAG in LangGraph — routing + grading + rewrite + self-correction",
+            "description": "Build agentic RAG in LangGraph — routing + grading + rewrite + self-correction",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "LangGraph Agentic RAG (hands-on)",
+                "url": "https://langchain-ai.github.io/langgraph/tutorials/rag/langgraph_agentic_rag/",
+                "source_type": "docs",
+                "content": "Build a stateful agentic RAG graph: routing, doc grading, query rewriting, self-correction loops. Implementation backbone for the agentic + multimodal RAG projects."
+              }
+            ]
+          },
+          {
+            "key": "rag-16",
+            "title": "ColPali — visual document retrieval over page images, no OCR",
+            "description": "ColPali — visual document retrieval over page images, no OCR",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "ColPali — Visual Document Retrieval",
+                "url": "https://arxiv.org/abs/2407.01449",
+                "source_type": "paper",
+                "content": "Retrieve over page IMAGES using ColBERT-style late interaction on VLM patch embeddings — no OCR/layout parsing. SOTA on ViDoRe. Core of multimodal RAG over PDFs with figures/tables."
+              }
+            ]
+          },
+          {
+            "key": "rag-17",
+            "title": "Applied multimodal RAG — CLIP embeddings, image-to-text via VLM, multimodal QA",
+            "description": "Applied multimodal RAG — CLIP embeddings, image-to-text via VLM, multimodal QA",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Multimodal RAG (applied guide)",
+                "url": "https://weaviate.io/blog/multimodal-rag",
+                "source_type": "blog",
+                "content": "End-to-end applied multimodal RAG: CLIP/joint embeddings, image-to-text via vision LLM, retrieving across text+image, building a multimodal QA pipeline."
+              }
+            ]
+          },
+          {
+            "key": "rag-18",
+            "title": "RAG evaluation — recall@k/MRR/nDCG + faithfulness/answer-relevance/RAGAS",
+            "description": "RAG evaluation — recall@k/MRR/nDCG + faithfulness/answer-relevance/RAGAS",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "RAG evaluation",
+                "url": null,
+                "source_type": "rag",
+                "content": "Evaluating retrieval (recall/precision/MRR/nDCG) and generation (faithfulness, answer relevance) — RAGAS-style metrics."
+              }
+            ]
+          },
+          {
+            "key": "rag-19",
+            "title": "Install ragas, run faithfulness/answer-relevance/context-precision/context-recall on your RAG pipeline — build the eval-driven dev loop you'll use for all remaining rag steps",
+            "description": "Install ragas, run faithfulness/answer-relevance/context-precision/context-recall on your RAG pipeline — build the eval-driven dev loop you'll use for all remaining rag steps",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "RAGAS — RAG Evaluation Framework",
+                "url": "https://docs.ragas.io/en/latest/",
+                "source_type": "documentation",
+                "content": "Hands-on RAGAS framework: faithfulness, answer relevance, context precision, context recall metrics. LLM-as-judge scoring, dataset synthesis, and automated eval pipelines for RAG systems."
+              }
+            ]
+          },
+          {
+            "key": "rag-20",
+            "title": "Choosing optimal chunk size (interview angle)",
+            "description": "Choosing optimal chunk size (interview angle)",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Choosing optimal chunk size in RAG",
+                "url": null,
+                "source_type": "rag",
+                "content": "Query/content analysis, model constraints, chunk overlap, quantitative evaluation, advanced chunking alternatives."
+              }
+            ]
+          },
+          {
+            "key": "rag-21",
+            "title": "Debugging embedding drift",
+            "description": "Debugging embedding drift",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Debugging embedding drift",
+                "url": null,
+                "source_type": "rag",
+                "content": "Compare embedding distributions, verify model consistency, inspect chunking drift, retrieval metrics over time, domain drift, observability."
+              }
+            ]
+          },
+          {
+            "key": "rag-22",
+            "title": "RAG vs REFRAG",
+            "description": "RAG vs REFRAG",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "RAG vs REFRAG",
+                "url": null,
+                "source_type": "rag",
+                "content": "REFRAG: compressing retrieved context into chunk embeddings for faster decoding — tradeoffs vs classic RAG."
+              }
+            ]
+          },
+          {
+            "key": "rag-23",
+            "title": "Fine-tuning vs RAG decision",
+            "description": "Fine-tuning vs RAG decision",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Fine-tuning vs RAG",
+                "url": null,
+                "source_type": "rag",
+                "content": "Scenario: answers correct in staging but fail in prod after company data changes — when to fine-tune vs RAG vs both."
+              }
+            ]
+          },
+          {
+            "key": "rag-24",
+            "title": "Advanced RAG pipeline, stage by stage",
+            "description": "Advanced RAG pipeline, stage by stage",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Advanced RAG pipeline",
+                "url": null,
+                "source_type": "rag",
+                "content": "query transformation → routing → retrieval → re-ranking → context compression → prompt construction → generation → guardrails → final response."
+              }
+            ]
+          },
+          {
+            "key": "rag-25",
+            "title": "Securing RAG applications",
+            "description": "Securing RAG applications",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Securing RAG applications",
+                "url": null,
+                "source_type": "rag",
+                "content": "Prompt injection, data exfiltration via retrieval, access control on the index, PII handling, output guardrails."
+              }
+            ]
+          },
+          {
+            "key": "rag-26",
+            "title": "Amazon Bedrock Knowledge Bases — managed RAG: data-source ingestion, auto chunk+embed into OpenSearch/Aurora, RetrieveAndGenerate API. Compare against your hand-built pipeline (cost, control, latency)",
+            "description": "Amazon Bedrock Knowledge Bases — managed RAG: data-source ingestion, auto chunk+embed into OpenSearch/Aurora, RetrieveAndGenerate API. Compare against your hand-built pipeline (cost, control, latency).",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Amazon Bedrock Knowledge Bases (Managed RAG)",
+                "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/knowledge-base.html",
+                "source_type": "docs",
+                "content": "Fully-managed RAG on Bedrock: ingest sources into a vector store (OpenSearch/Aurora), auto chunk+embed, retrieve+generate API. Managed alternative to hand-built RAG."
+              }
+            ]
+          },
+          {
+            "key": "rag-27",
+            "title": "Build a full production RAG system",
+            "description": "Build a full production RAG system",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Production RAG system build",
+                "url": null,
+                "source_type": "rag",
+                "content": "End-to-end: smart chunking, BGE embeddings, FAISS, hybrid retrieval, query rewriting, multi-vector, cross-encoder re-ranking, context compression, RAGAS eval, conversation memory, guardrails, streaming, agentic RAG."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Complete RAG Mastery foundations",
+        "description": "Finish the fixed pathway and produce evidence through sessions and assessments.",
+        "badge_title": "RAG Mastery Foundations",
+        "criteria": {
+          "type": "progress",
+          "progress": 1,
+          "target": 8
+        }
+      }
+    ]
+  }
+}

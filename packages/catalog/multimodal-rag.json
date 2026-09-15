@@ -1,0 +1,371 @@
+{
+  "slug": "multimodal-rag",
+  "title": "Multimodal RAG",
+  "description": "Fixed operator-curated pathway from Tracker's Multimodal LLMs plan. No per-student curriculum generation.",
+  "version": "1.0.0",
+  "status": "published",
+  "manifest": {
+    "goal_type": "skill",
+    "weekly_hours": 8,
+    "learning_flow": [
+      "Learn the concept",
+      "Read the curated material",
+      "Watch an associated video when present",
+      "Build or practice",
+      "Complete recall and review"
+    ],
+    "source": "tracker-curated-v1",
+    "phases": [
+      {
+        "title": "Multimodal LLMs",
+        "topics": [
+          {
+            "key": "multimodal-1",
+            "title": "Read ViT paper — implement PatchEmbedding in PyTorch. Understand CLS token, positional encoding, Pre-LN blocks. Visualize attention maps.",
+            "description": "Read ViT paper — implement PatchEmbedding in PyTorch. Understand CLS token, positional encoding, Pre-LN blocks. Visualize attention maps.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "ViT — An Image is Worth 16x16 Words",
+                "url": "https://arxiv.org/abs/2010.11929",
+                "source_type": "paper",
+                "content": "Original Vision Transformer — splits image into 16x16 patches, treats as tokens, feeds into standard transformer. Foundation for DINO, DINOv2, MAE, Swin, SAM, LLaVA. Read before any ViT-based paper."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-2",
+            "title": "Read SimCLR — understand NT-Xent contrastive loss, augmentation pairs, projection head. Foundation for CLIP training.",
+            "description": "Read SimCLR — understand NT-Xent contrastive loss, augmentation pairs, projection head. Foundation for CLIP training.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "SimCLR — Contrastive Self-Supervised Learning",
+                "url": "https://arxiv.org/abs/2002.05709",
+                "source_type": "paper",
+                "content": "Simple framework for contrastive learning — two augmented views of same image pulled together, different images pushed apart. Foundation for understanding CLIP contrastive training."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-3",
+            "title": "Clone CLIP repo, run zero-shot image classification on 10 custom images. Understand joint embedding space and cosine similarity scoring.",
+            "description": "Clone CLIP repo, run zero-shot image classification on 10 custom images. Understand joint embedding space and cosine similarity scoring.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "CLIP (OpenAI)",
+                "url": "https://github.com/openai/CLIP",
+                "source_type": "github",
+                "content": "Contrastive Language-Image Pretraining — foundational vision-language model, zero-shot image classification via text prompts. Natural fit with his CNN/OpenCV background."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-4",
+            "title": "Read DINO — student-teacher self-distillation without labels. Visualize attention maps showing emergent segmentation. Compare to MAE.",
+            "description": "Read DINO — student-teacher self-distillation without labels. Visualize attention maps showing emergent segmentation. Compare to MAE.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "DINO (original) — Self-Supervised Vision Transformers",
+                "url": "https://arxiv.org/abs/2104.14294",
+                "source_type": "paper",
+                "content": "Original DINO self-distillation paper (v1) — student-teacher ViT without labels. Emergent segmentation. Direct precursor to DINOv2. Yannic Kilcher video: https://www.youtube.com/watch?v=h3ij3F3cPIk"
+              }
+            ]
+          },
+          {
+            "key": "multimodal-5",
+            "title": "Read MAE — 75% patch masking + pixel reconstruction. Compare to BERT masking. Understand data-efficient pretraining.",
+            "description": "Read MAE — 75% patch masking + pixel reconstruction. Compare to BERT masking. Understand data-efficient pretraining.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "MAE — Masked Autoencoders",
+                "url": "https://arxiv.org/abs/2111.06377",
+                "source_type": "paper",
+                "content": "Mask 75% of image patches, reconstruct pixels — BERT for vision. Kaiming He et al. (Meta). Data-efficient SSL baseline before DINOv2. Yannic Kilcher video: https://www.youtube.com/watch?v=Dp6iICL2dVI"
+              }
+            ]
+          },
+          {
+            "key": "multimodal-6",
+            "title": "Run DINOv2 inference on custom images. Use as visual backbone — integrate into DocCluster for image embeddings.",
+            "description": "Run DINOv2 inference on custom images. Use as visual backbone — integrate into DocCluster for image embeddings.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "DINOv2 (Meta)",
+                "url": "https://github.com/facebookresearch/dinov2",
+                "source_type": "github",
+                "content": "Self-supervised vision transformer — learns powerful visual features without labels. State-of-the-art on depth estimation, segmentation, classification. Pairs well with CLIP for multimodal projects."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-7",
+            "title": "Read Flamingo — frozen vision encoder + Perceiver Resampler + gated cross-attention into frozen LLM. Run OpenFlamingo 4-shot VQA.",
+            "description": "Read Flamingo — frozen vision encoder + Perceiver Resampler + gated cross-attention into frozen LLM. Run OpenFlamingo 4-shot VQA.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Flamingo — Visual Language Model for Few-Shot Learning",
+                "url": "https://arxiv.org/abs/2204.14198",
+                "source_type": "paper",
+                "content": "Bridges frozen vision encoder + LLM via cross-attention layers — interleaved image/text input, few-shot multimodal tasks. Single model outperforms fine-tuned task-specific models. DeepMind, 2022."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-8",
+            "title": "Read BLIP-2 — Q-Former two-stage training. Understand why 188M trainable params beats Flamingo-80B with 54x fewer params. Load from HuggingFace.",
+            "description": "Read BLIP-2 — Q-Former two-stage training. Understand why 188M trainable params beats Flamingo-80B with 54x fewer params. Load from HuggingFace.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "BLIP-2 — Bootstrapping Language-Image Pre-training",
+                "url": "https://arxiv.org/abs/2301.12597",
+                "source_type": "paper",
+                "content": "Lightweight Q-Former bridges frozen image encoder + frozen LLM. Outperforms Flamingo80B by 8.7% on zero-shot VQAv2 with 54x fewer trainable params. Salesforce, 2023."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-9",
+            "title": "Read InstructBLIP — instruction-aware Q-Former. Compare zero-shot vs BLIP-2 on 20 custom images across 3 task types (VQA, captioning, OCR).",
+            "description": "Read InstructBLIP — instruction-aware Q-Former. Compare zero-shot vs BLIP-2 on 20 custom images across 3 task types (VQA, captioning, OCR).",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "InstructBLIP — Instruction Tuning for Vision-Language Models",
+                "url": "https://arxiv.org/abs/2305.06500",
+                "source_type": "paper",
+                "content": "Instruction-aware Q-Former on BLIP-2 — trained on 26 datasets, SOTA zero-shot on 13 held-out benchmarks. Standard architecture for generalizable VLMs. Salesforce, 2023."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-10",
+            "title": "Read LLaVA — compare linear projection vs Q-Former. Understand why GPT-4 instruction data quality matters more than architecture complexity.",
+            "description": "Read LLaVA — compare linear projection vs Q-Former. Understand why GPT-4 instruction data quality matters more than architecture complexity.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "LLaVA — Visual Instruction Tuning",
+                "url": "https://arxiv.org/abs/2304.08485",
+                "source_type": "paper",
+                "content": "First visual instruction-tuned VLM — CLIP visual encoder + LLaMA LLM + projection layer. Two-stage training: align then fine-tune. Foundation of GPT-4V style models."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-11",
+            "title": "Build: Multimodal DocCluster — InstructBLIP/LLaVA generates text from images/figures in docs → EmbedAnything embeds all content → PageIndex indexes → FastAPI serves multimodal QA. Stack: InstructBLIP ",
+            "description": "Build: Multimodal DocCluster — InstructBLIP/LLaVA generates text from images/figures in docs → EmbedAnything embeds all content → PageIndex indexes → FastAPI serves multimodal QA. Stack: InstructBLIP + EmbedAnything + PageIndex + FastAPI",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": []
+          },
+          {
+            "key": "multimodal-12",
+            "title": "[DEFERRED — after mm.10] SAM — Segment Anything. Universal segmentation via prompts. ViT backbone + mask decoder. Read after completing Tier 3.",
+            "description": "[DEFERRED — after mm.10] SAM — Segment Anything. Universal segmentation via prompts. ViT backbone + mask decoder. Read after completing Tier 3.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "SAM — Segment Anything Model (Meta)",
+                "url": "https://arxiv.org/abs/2304.02643",
+                "source_type": "paper",
+                "content": "Universal image segmentation via point/box/text prompts — trained on 1B masks, 11M images. ViT backbone + lightweight mask decoder. SAM 2 extends to video."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-13",
+            "title": "[DEFERRED — object detection track] FPN/BiFPN — multi-scale feature pyramid for detection. Read only if doing detection work.",
+            "description": "[DEFERRED — object detection track] FPN/BiFPN — multi-scale feature pyramid for detection. Read only if doing detection work.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Feature Pyramid Networks (FPN / BiFPN)",
+                "url": "https://arxiv.org/abs/1612.03144",
+                "source_type": "paper",
+                "content": "Multi-scale feature extraction for object detection — bottom-up + top-down pathways. BiFPN adds bi-directional weighted fusion (EfficientDet). Required for DETR understanding."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-14",
+            "title": "[DEFERRED — object detection track] DETR — first transformer detector, no anchors/NMS. Prereq: L55.",
+            "description": "[DEFERRED — object detection track] DETR — first transformer detector, no anchors/NMS. Prereq: L55.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "DETR — End-to-End Object Detection with Transformers",
+                "url": "https://arxiv.org/abs/2005.12872",
+                "source_type": "paper",
+                "content": "First transformer-based object detector — no anchors, no NMS, Hungarian matching. Direct ancestor of RF-DETR. Yannic Kilcher video: https://www.youtube.com/watch?v=T35ba_VXkMY"
+              }
+            ]
+          },
+          {
+            "key": "multimodal-15",
+            "title": "[DEFERRED — object detection track] Deformable DETR — fixes DETR slow convergence. Read after L57.",
+            "description": "[DEFERRED — object detection track] Deformable DETR — fixes DETR slow convergence. Read after L57.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Deformable DETR",
+                "url": "https://arxiv.org/abs/2010.04159",
+                "source_type": "paper",
+                "content": "Fixes DETR's slow convergence via deformable attention — attends to sparse key points not full feature map. Bridge between DETR and RF-DETR. Aleksa Gordić video: https://www.youtube.com/watch?v=BNFNsLMlJqg"
+              }
+            ]
+          },
+          {
+            "key": "multimodal-16",
+            "title": "[DEFERRED — autonomous driving track] BEVFormer — bird's eye view from multi-camera. Only if branching into AV.",
+            "description": "[DEFERRED — autonomous driving track] BEVFormer — bird's eye view from multi-camera. Only if branching into AV.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "BEVFormer",
+                "url": "https://arxiv.org/abs/2203.17270",
+                "source_type": "paper",
+                "content": "Bird's Eye View representation from multi-camera images via spatiotemporal transformers. Tesla FSD-style multi-camera fusion. +9 NDS over prior SOTA on nuScenes."
+              }
+            ]
+          },
+          {
+            "key": "multimodal-17",
+            "title": "[DEFERRED — autonomous driving track] World Models for AV — generative spatio-temporal models. Read after BEVFormer.",
+            "description": "[DEFERRED — autonomous driving track] World Models for AV — generative spatio-temporal models. Read after BEVFormer.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "World Models for Autonomous Driving",
+                "url": "https://github.com/LMD0311/Awesome-World-Model",
+                "source_type": "github",
+                "content": "Generative spatio-temporal neural systems that compress sensor observations into latent state and roll forward under actions — enabling vehicles to simulate futures. Curated paper list + GAIA-2 reference."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Complete Multimodal RAG foundations",
+        "description": "Finish the fixed pathway and produce evidence through sessions and assessments.",
+        "badge_title": "Multimodal RAG Foundations",
+        "criteria": {
+          "type": "progress",
+          "progress": 1,
+          "target": 5
+        }
+      }
+    ]
+  }
+}

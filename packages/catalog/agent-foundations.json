@@ -1,0 +1,498 @@
+{
+  "slug": "agent-foundations",
+  "title": "Agent Foundations",
+  "description": "Fixed operator-curated pathway from Tracker's Agent Foundations plan. No per-student curriculum generation.",
+  "version": "1.0.0",
+  "status": "published",
+  "manifest": {
+    "goal_type": "skill",
+    "weekly_hours": 8,
+    "learning_flow": [
+      "Learn the concept",
+      "Read the curated material",
+      "Watch an associated video when present",
+      "Build or practice",
+      "Complete recall and review"
+    ],
+    "source": "tracker-curated-v1",
+    "phases": [
+      {
+        "title": "Agent Foundations",
+        "topics": [
+          {
+            "key": "agents-1",
+            "title": "Read article — internalize 3 agent types: task, process, decision agents",
+            "description": "Read article — internalize 3 agent types: task, process, decision agents",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Not All AI Agents Are Equal (Lenny's)",
+                "url": "https://www.lennysnewsletter.com/p/not-all-ai-agents-are-created-equal",
+                "source_type": "blog",
+                "content": "3 architecturally distinct agent types. Read first before any agent code."
+              }
+            ]
+          },
+          {
+            "key": "agents-2",
+            "title": "Watch top 2-3 videos, understand reflect-act loop",
+            "description": "Watch top 2-3 videos, understand reflect-act loop",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Reflection Agent videos",
+                "url": "https://www.youtube.com/results?search_query=reflection+agent",
+                "source_type": "youtube_search",
+                "content": "Watch top 2-3 results — understand reflect-act loop, core agent pattern"
+              }
+            ]
+          },
+          {
+            "key": "agents-3",
+            "title": "ReAct — interleave reasoning + tool actions; the core agent loop",
+            "description": "ReAct — interleave reasoning + tool actions; the core agent loop",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "ReAct — Reasoning + Acting",
+                "url": "https://arxiv.org/abs/2210.03629",
+                "source_type": "paper",
+                "content": "Interleave chain-of-thought reasoning with tool actions and observations. The foundational agent loop pattern behind most tool-using agents."
+              }
+            ]
+          },
+          {
+            "key": "agents-4",
+            "title": "Watch top 2-3 AutoGen videos, understand multi-agent conversation pattern",
+            "description": "Watch top 2-3 AutoGen videos, understand multi-agent conversation pattern",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "AutoGen videos",
+                "url": "https://www.youtube.com/results?search_query=autogen",
+                "source_type": "youtube_search",
+                "content": "Watch top 2-3 results — understand Microsoft AutoGen multi-agent framework"
+              }
+            ]
+          },
+          {
+            "key": "agents-5",
+            "title": "Run the HuggingFace space, read its source code",
+            "description": "Run the HuggingFace space, read its source code",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "ml-intern (smolagents)",
+                "url": "https://huggingface.co/spaces/smolagents/ml-intern",
+                "source_type": "huggingface",
+                "content": "smolagents-powered ML intern demo. Run it, read source code."
+              }
+            ]
+          },
+          {
+            "key": "agents-6",
+            "title": "Clone repo, read all code, run locally, study how agents modify training scripts",
+            "description": "Clone repo, read all code, run locally, study how agents modify training scripts",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "autoresearch (Karpathy)",
+                "url": "https://github.com/karpathy/autoresearch",
+                "source_type": "github",
+                "content": "AI agents autonomously run ML experiments overnight — modifies GPT training code, self-iterates"
+              }
+            ]
+          },
+          {
+            "key": "agents-7",
+            "title": "Hands-on intro: build your first agent. Anchor the patterns with real code.",
+            "description": "Hands-on intro: build your first agent. Anchor the patterns with real code.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Intro to Agentic AI – Build Your First AI Agent",
+                "url": "https://maven.com/p/d1cf5d/intro-to-agentic-ai-build-your-first-ai-agent",
+                "source_type": "blog",
+                "content": "Hands-on intro to agentic AI: what agents are, how they reason, how to build your first agent using popular frameworks"
+              }
+            ]
+          },
+          {
+            "key": "agents-8",
+            "title": "Production agentic patterns for enterprise use-cases — reflection, tool-use, multi-agent coordination",
+            "description": "Production agentic patterns for enterprise use-cases — reflection, tool-use, multi-agent coordination",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Designing Agentic AI Systems for Enterprise Use-Cases",
+                "url": "https://maven.com/p/466e22/1-designing-agentic-ai-systems-for-enterprise-use-cases",
+                "source_type": "blog",
+                "content": "Production patterns for enterprise agentic AI: reflection, tool-use, multi-agent coordination, real-world projects (pricing agents, incident triage, recruitment systems)"
+              }
+            ]
+          },
+          {
+            "key": "agents-9",
+            "title": "Read Anthropic's foundational agent guide — workflow vs agent, augmented LLM, the 5 workflow patterns + autonomous loop",
+            "description": "Read Anthropic's foundational agent guide — workflow vs agent, augmented LLM, the 5 workflow patterns + autonomous loop",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Building Effective AI Agents (Anthropic)",
+                "url": "https://www.anthropic.com/engineering/building-effective-agents",
+                "source_type": "blog",
+                "content": "Anthropic's engineering guide on agent design — workflow vs. agent distinction, the augmented-LLM primitive, five workflow patterns (prompt chaining, routing, parallelization, orchestrator-workers, evaluator-optimizer), and autonomous agent loops with safeguards."
+              }
+            ]
+          },
+          {
+            "key": "agents-10",
+            "title": "Function calling / tool use — schemas, the tool_use/tool_result loop, parallel calls",
+            "description": "Function calling / tool use — schemas, the tool_use/tool_result loop, parallel calls",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Function Calling / Tool Use (fundamentals)",
+                "url": "https://docs.anthropic.com/en/docs/build-with-claude/tool-use",
+                "source_type": "docs",
+                "content": "How LLMs call tools: schema definitions, the request→tool_use→tool_result loop, parallel tool calls, structured outputs, error handling. The mechanic under every agent."
+              }
+            ]
+          },
+          {
+            "key": "agents-11",
+            "title": "Production case study of orchestrator-workers — isolated parallel subagents, 90.2% gain, token-cost tradeoffs",
+            "description": "Production case study of orchestrator-workers — isolated parallel subagents, 90.2% gain, token-cost tradeoffs",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "How we built our multi-agent research system (Anthropic)",
+                "url": "https://www.anthropic.com/engineering/multi-agent-research-system",
+                "source_type": "blog",
+                "content": "Anthropic's production retrospective on Claude's Research feature — orchestrator (lead) agent spawning isolated parallel subagents, 90.2% gain over single-agent, prompt-engineering as primary lever, token-cost tradeoffs, and production hard parts (resumability, tracing, LLM-as-judge eval)."
+              }
+            ]
+          },
+          {
+            "key": "agents-12",
+            "title": "Tool/ACI design deep dive — tool-as-prompt, namespacing, high-signal returns, eval-driven tool loop",
+            "description": "Tool/ACI design deep dive — tool-as-prompt, namespacing, high-signal returns, eval-driven tool loop",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Writing effective tools for AI agents (Anthropic)",
+                "url": "https://www.anthropic.com/engineering/writing-tools-for-agents",
+                "source_type": "blog",
+                "content": "Anthropic's guide to designing, writing, and evaluating tools for LLM agents — tool-as-prompt, fewer workflow-shaped tools over 1:1 API wraps, namespacing, high-signal returns, input tolerance, and an eval-driven loop where Claude improves its own tools."
+              }
+            ]
+          },
+          {
+            "key": "agents-13",
+            "title": "MCP — Model Context Protocol; tools/resources/prompts over servers",
+            "description": "MCP — Model Context Protocol; tools/resources/prompts over servers",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "MCP — Model Context Protocol",
+                "url": "https://modelcontextprotocol.io/",
+                "source_type": "docs",
+                "content": "Open standard for connecting agents to tools/data via servers: tools, resources, prompts, transports. The plug-in layer for production agents."
+              }
+            ]
+          },
+          {
+            "key": "agents-14",
+            "title": "MCP 2026-07-28 spec update — stateless core, Tasks/Extensions framework, MCP Apps, auth hardening; what changed since fundamentals",
+            "description": "MCP 2026-07-28 spec update — stateless core, Tasks/Extensions framework, MCP Apps, auth hardening; what changed since fundamentals",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "MCP 2026-07-28 Spec Update — Stateless Core, Tasks/Extensions, MCP Apps, Auth Hardening",
+                "url": "https://modelcontextprotocol.io/specification/2026-07-28/changelog",
+                "source_type": "docs",
+                "content": "MCP's biggest spec revision since launch: protocol goes stateless at the core (servers run behind plain load balancers, header-based routing, cacheable tools/list), Tasks move out of experimental core into a formal io.modelcontextprotocol/tasks extension with poll-based tasks/get + tasks/update, a new formal Extensions framework, MCP Apps for server-rendered UIs, OAuth/OIDC-aligned auth hardening, and a 12-month deprecation policy (Roots/Sampling/Logging deprecated, legacy HTTP+SSE transport on a year-long offramp). Read this right after MCP fundamentals (L110) to know what changed since."
+              }
+            ]
+          },
+          {
+            "key": "agents-15",
+            "title": "BUILD: hands-on MCP server — tools/resources/prompts, test with MCP Inspector, connect to a live client",
+            "description": "BUILD: hands-on MCP server — tools/resources/prompts, test with MCP Inspector, connect to a live client",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Build an MCP Server (hands-on, Python + TypeScript)",
+                "url": "https://modelcontextprotocol.io/docs/2026-07-28/develop/build-server",
+                "source_type": "docs",
+                "content": "Official step-by-step tutorial: build a real MCP server exposing tools/resources/prompts, run it against the MCP Inspector (`npx @modelcontextprotocol/inspector ...`) to test locally, then connect it to a live client. Covers FastMCP decorators (Python) vs explicit Zod schemas (TypeScript). Turns MCP from a read-only concept into something you've actually shipped — direct prereq for the agent-native capstone (T25)."
+              }
+            ]
+          },
+          {
+            "key": "agents-16",
+            "title": "Context engineering — context rot, right-altitude prompts, just-in-time retrieval, compaction + memory + sub-agents",
+            "description": "Context engineering — context rot, right-altitude prompts, just-in-time retrieval, compaction + memory + sub-agents",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Effective context engineering for AI agents (Anthropic)",
+                "url": "https://www.anthropic.com/engineering/effective-context-engineering-for-ai-agents",
+                "source_type": "blog",
+                "content": "Curating the optimal token set during inference — context rot, right-altitude system prompts, just-in-time retrieval vs pre-loading, and long-horizon techniques (compaction, structured note-taking, sub-agents)."
+              }
+            ]
+          },
+          {
+            "key": "agents-17",
+            "title": "Agent memory — short-term vs long-term, vector/graph memory (mem0)",
+            "description": "Agent memory — short-term vs long-term, vector/graph memory (mem0)",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Agent Memory (short/long-term)",
+                "url": "https://github.com/mem0ai/mem0",
+                "source_type": "github",
+                "content": "Memory for agents: short-term scratchpad vs long-term persistent memory, vector/graph memory stores, retrieval + decay. mem0 as the reference implementation."
+              }
+            ]
+          },
+          {
+            "key": "agents-18",
+            "title": "Build a LangGraph stateful agent: define State, add nodes + edges, implement conditional routing, add checkpointing — this is the production agent skeleton",
+            "description": "Build a LangGraph stateful agent: define State, add nodes + edges, implement conditional routing, add checkpointing — this is the production agent skeleton",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "LangGraph — Stateful Agent Graphs (hands-on)",
+                "url": "https://langchain-ai.github.io/langgraph/tutorials/introduction/",
+                "source_type": "docs",
+                "content": "Build stateful, cyclical agent graphs with LangGraph: nodes, edges, state schema, conditional routing, human-in-the-loop, persistence/checkpointing. The standard framework for production agent orchestration."
+              }
+            ]
+          },
+          {
+            "key": "agents-19",
+            "title": "Hands-on: AutoGen - build a multi-agent group chat with tool-executing agents",
+            "description": "Hands-on: AutoGen - build a multi-agent group chat with tool-executing agents",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "AutoGen - Multi-Agent Conversation Framework (Microsoft)",
+                "url": "https://github.com/microsoft/autogen",
+                "source_type": "github",
+                "content": "Hands-on: generic multi-agent conversation framework - customizable conversable agents, group chats, human-in-the-loop, code-executing agents."
+              }
+            ]
+          },
+          {
+            "key": "agents-20",
+            "title": "Hands-on: CrewAI - role-based Crew with hierarchical delegation vs event-driven Flow",
+            "description": "Hands-on: CrewAI - role-based Crew with hierarchical delegation vs event-driven Flow",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "CrewAI - Role-Playing Multi-Agent Orchestration",
+                "url": "https://github.com/crewAIInc/crewAI",
+                "source_type": "github",
+                "content": "Hands-on: Crews (autonomous role-based agent teams) vs Flows (event-driven production workflows), hierarchical process delegation, built-in memory."
+              }
+            ]
+          },
+          {
+            "key": "agents-21",
+            "title": "Amazon Bedrock Agents — managed agent orchestration: action groups backed by Lambda, OpenAPI tool schemas, session state, KB-backed RAG. Ship the coaching agent on AWS vs self-host.",
+            "description": "Amazon Bedrock Agents — managed agent orchestration: action groups backed by Lambda, OpenAPI tool schemas, session state, KB-backed RAG. Ship the coaching agent on AWS vs self-host.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Amazon Bedrock Agents (Managed Agents)",
+                "url": "https://docs.aws.amazon.com/bedrock/latest/userguide/agents.html",
+                "source_type": "docs",
+                "content": "Managed agent orchestration on Bedrock: action groups (Lambda tools), OpenAPI schemas, session memory, RAG via Knowledge Bases. Cloud-managed alternative to LangGraph/smolagents."
+              }
+            ]
+          },
+          {
+            "key": "agents-22",
+            "title": "Study the agentic-patterns catalogue — map each pattern to the 5 Anthropic workflow patterns",
+            "description": "Study the agentic-patterns catalogue — map each pattern to the 5 Anthropic workflow patterns",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "awesome-agentic-patterns (nibzard)",
+                "url": "https://github.com/nibzard/awesome-agentic-patterns",
+                "source_type": "github",
+                "content": "Curated catalogue of agentic AI patterns — reference for designing agent systems."
+              }
+            ]
+          },
+          {
+            "key": "agents-23",
+            "title": "Evaluate the agent you built: outcome vs trajectory evals, construct an agent eval set, LLM-as-judge with rubrics, measure tool-call correctness + task success, avoid common eval pitfalls.",
+            "description": "Evaluate the agent you built: outcome vs trajectory evals, construct an agent eval set, LLM-as-judge with rubrics, measure tool-call correctness + task success, avoid common eval pitfalls.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Demystifying Evals for AI Agents (Anthropic)",
+                "url": "https://www.anthropic.com/engineering/demystifying-evals-for-ai-agents",
+                "source_type": "blog",
+                "content": "Anthropic engineering guide to evaluating AI agents: outcome vs trajectory evals, building agent eval sets, LLM-as-judge, grading rubrics, and avoiding common agent-eval pitfalls."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Complete Agent Foundations foundations",
+        "description": "Finish the fixed pathway and produce evidence through sessions and assessments.",
+        "badge_title": "Agent Foundations Foundations",
+        "criteria": {
+          "type": "progress",
+          "progress": 1,
+          "target": 7
+        }
+      }
+    ]
+  }
+}

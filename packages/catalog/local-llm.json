@@ -1,0 +1,498 @@
+{
+  "slug": "local-llm",
+  "title": "Local & On-Prem LLMs",
+  "description": "Fixed operator-curated pathway from Tracker's Local & On-Prem LLMs plan. No per-student curriculum generation.",
+  "version": "1.0.0",
+  "status": "published",
+  "manifest": {
+    "goal_type": "skill",
+    "weekly_hours": 8,
+    "learning_flow": [
+      "Learn the concept",
+      "Read the curated material",
+      "Watch an associated video when present",
+      "Build or practice",
+      "Complete recall and review"
+    ],
+    "source": "tracker-curated-v1",
+    "phases": [
+      {
+        "title": "Local & On-Prem LLMs",
+        "topics": [
+          {
+            "key": "localllm-1",
+            "title": "Survey the 2026 open-source local-LLM landscape — Llama 4 / Qwen 3.5 / DeepSeek V4 / Gemma 4 / Mistral / Phi-4 / Kimi K2.6 / GLM-5.1: benchmarks, licenses, what changed.",
+            "description": "Survey the 2026 open-source local-LLM landscape — Llama 4 / Qwen 3.5 / DeepSeek V4 / Gemma 4 / Mistral / Phi-4 / Kimi K2.6 / GLM-5.1: benchmarks, licenses, what changed.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Local LLM Landscape & Model Families (2026)",
+                "url": "https://huggingface.co/blog/daya-shankar/open-source-llms",
+                "source_type": "blog",
+                "content": "What's new in open-source local LLMs in 2026 — Llama 4, Qwen 3.5, DeepSeek V4, Gemma 4, Mistral, Phi-4, Kimi K2.6, GLM-5.1; benchmarks, licenses, what changed vs last gen (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-2",
+            "title": "Study MiniMax M3: how MiniMax Sparse Attention (MSA) on a GQA backbone makes 1M-context decode/prefill cheap; frontier coding + native multimodality in one open-weight model; where it fits on-prem.",
+            "description": "Study MiniMax M3: how MiniMax Sparse Attention (MSA) on a GQA backbone makes 1M-context decode/prefill cheap; frontier coding + native multimodality in one open-weight model; where it fits on-prem.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "MiniMax M3 — Open-Weight 1M-Context Frontier Model",
+                "url": "https://datanorth.ai/news/minimax-launches-m3",
+                "source_type": "blog",
+                "content": "First open-weight model to combine frontier coding, 1M-token context, and native multimodality. MiniMax Sparse Attention (MSA) on a GQA backbone: 15.6x faster decode, 9.7x faster prefill at 1M tokens; 59.0% SWE-Bench Pro (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-3",
+            "title": "Study Gemma 4's on-device tiers (E2B/E4B/26B-MoE/31B): RAM math per size, Apache-2.0 licensing, multimodal/audio support — pick the right tier for phone/edge/consumer-GPU.",
+            "description": "Study Gemma 4's on-device tiers (E2B/E4B/26B-MoE/31B): RAM math per size, Apache-2.0 licensing, multimodal/audio support — pick the right tier for phone/edge/consumer-GPU.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Gemma 4 — Google's On-Device Open Model Family",
+                "url": "https://blog.google/innovation-and-ai/technology/developers-tools/gemma-4/",
+                "source_type": "blog",
+                "content": "Apache-2.0 family: E2B (2GB RAM, phones), E4B (edge), 26B-MoE (8GB Q4), 31B dense (single GPU). Text+image, audio on small models, up to 256K context, 140+ languages, fully offline (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-4",
+            "title": "Study GLM-5.2 (Z.ai, MIT open weights): 1M-token context + 131K output, Terminal-Bench 2.1 81.0 / SWE-bench Pro 62.1%; why it's a strong on-prem coding/agent flagship and how it improves on GLM-5.1.",
+            "description": "Study GLM-5.2 (Z.ai, MIT open weights): 1M-token context + 131K output, Terminal-Bench 2.1 81.0 / SWE-bench Pro 62.1%; why it's a strong on-prem coding/agent flagship and how it improves on GLM-5.1.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "GLM-5.2 — Z.ai Open-Weight Coding Flagship (1M Context)",
+                "url": "https://z.ai/blog/glm-5.2",
+                "source_type": "model",
+                "content": "Z.ai flagship (June 16 2026), MIT-licensed open weights. 1M-token context (glm-5.2[1m]), 131K max output. 81.0 Terminal-Bench 2.1 (up from 62.0), 62.1% SWE-bench Pro. Strong on-prem coding/agent candidate; successor to GLM-5.1 named in ll.1 (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-5",
+            "title": "Study SubQ 1.1 Small: how Subquadratic Sparse Attention (SSA) hits 64.5x less compute / 56x faster than FlashAttention-2 at 1M tokens and 98-100% retrieval to 12M tokens — the efficiency case for very",
+            "description": "Study SubQ 1.1 Small: how Subquadratic Sparse Attention (SSA) hits 64.5x less compute / 56x faster than FlashAttention-2 at 1M tokens and 98-100% retrieval to 12M tokens — the efficiency case for very-long-context local inference.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "SubQ 1.1 Small — Subquadratic Sparse Attention Technical Report",
+                "url": "https://subq.ai/subq-1-1-small-technical-report",
+                "source_type": "model",
+                "content": "Subquadratic Sparse Attention (SSA) enabling reasoning over up to 12M tokens. At 1M tokens: 64.5x less compute than dense attention, 56x faster than FlashAttention-2; 98-100% needle-in-haystack accuracy to 12M tokens. Architecture deep-dive on long-context efficiency for local inference (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-6",
+            "title": "Build a decision framework: map task (coding/chat/edge/multilingual/long-context) + hardware tier (8/16/24/48 GB) to the right local model.",
+            "description": "Build a decision framework: map task (coding/chat/edge/multilingual/long-context) + hardware tier (8/16/24/48 GB) to the right local model.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Choosing the Right Local LLM per Task",
+                "url": "https://www.sitepoint.com/best-local-llm-models-2026/",
+                "source_type": "blog",
+                "content": "Decision framework mapping task (coding/chat/edge/multilingual/long-context) and hardware tier (8/16/24/48 GB) to the right local model; quality-vs-speed tradeoffs (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-7",
+            "title": "Compare runtimes — Ollama / llama.cpp / LM Studio / MLX / vLLM — and pick per scenario (prototype vs prod vs Apple Silicon vs edge).",
+            "description": "Compare runtimes — Ollama / llama.cpp / LM Studio / MLX / vLLM — and pick per scenario (prototype vs prod vs Apple Silicon vs edge).",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Local LLM Runtimes & Serving Engines",
+                "url": "https://codersera.com/blog/ollama-vs-lm-studio-vs-vllm-vs-llama-cpp-vs-mlx-2026/",
+                "source_type": "blog",
+                "content": "Ollama / llama.cpp / LM Studio / MLX / vLLM compared — when to use which (prototype vs prod vs Apple Silicon vs edge); OpenAI-compatible APIs (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-8",
+            "title": "Nail the llama.cpp-vs-vLLM decision boundary: GGUF/CPU/Apple-Silicon/single-user vs PagedAttention+continuous-batching multi-user GPU serving (~16-20x concurrent throughput).",
+            "description": "Nail the llama.cpp-vs-vLLM decision boundary: GGUF/CPU/Apple-Silicon/single-user vs PagedAttention+continuous-batching multi-user GPU serving (~16-20x concurrent throughput).",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "llama.cpp vs vLLM — Choosing the Right Local Inference Engine",
+                "url": "https://developers.redhat.com/articles/2026/06/15/llamacpp-vs-vllm-choosing-right-local-llm-inference-engine",
+                "source_type": "blog",
+                "content": "Red Hat (June 2026) decision guide: llama.cpp/GGUF for single-user + edge + CPU/Apple Silicon vs vLLM PagedAttention/continuous batching for multi-user GPU serving (~16-20x concurrent throughput) (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-9",
+            "title": "Read the May-2026 runtime changelog: Ollama 0.24 MLX accel, vLLM v0.21 DeepSeek V4 on Blackwell, llama.cpp Qwen 3.6 MTP, MLX + LM Studio updates — what changed and why it matters.",
+            "description": "Read the May-2026 runtime changelog: Ollama 0.24 MLX accel, vLLM v0.21 DeepSeek V4 on Blackwell, llama.cpp Qwen 3.6 MTP, MLX + LM Studio updates — what changed and why it matters.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Local AI Runtime Update — What Shipped (May 2026)",
+                "url": "https://codersera.com/blog/local-ai-runtimes-may-2026-update/",
+                "source_type": "blog",
+                "content": "Changelog roundup: Ollama 0.24 (MLX accel, 58->112 tok/s on M5 Max, Codex App), vLLM v0.21 (DeepSeek V4 on Blackwell), llama.cpp (Qwen 3.6 MTP), MLX + LM Studio updates (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-10",
+            "title": "Quantize a model (GGUF Q4/Q5/Q8, AWQ/GPTQ); measure accuracy-vs-size; compute local cost-per-token vs API break-even.",
+            "description": "Quantize a model (GGUF Q4/Q5/Q8, AWQ/GPTQ); measure accuracy-vs-size; compute local cost-per-token vs API break-even.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Quantization & Cost Economics for Local LLMs",
+                "url": "https://huggingface.co/docs/transformers/main/en/quantization/overview",
+                "source_type": "documentation",
+                "content": "GGUF Q4/Q5/Q8, AWQ/GPTQ; accuracy-vs-size tradeoff; local cost-per-token vs API; hardware capex/opex and break-even math (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-11",
+            "title": "Browse TheBloke's quantized model repos to see real GGUF/GPTQ/AWQ builds and naming conventions.",
+            "description": "Browse TheBloke's quantized model repos to see real GGUF/GPTQ/AWQ builds and naming conventions.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "TheBloke (Hugging Face)",
+                "url": "https://huggingface.co/TheBloke",
+                "source_type": "huggingface",
+                "content": "Prolific quantized-model publisher — GGUF/GPTQ/AWQ builds of most open-weight LLMs, useful reference for quantization formats."
+              }
+            ]
+          },
+          {
+            "key": "localllm-12",
+            "title": "Adapt a local model to one job end-to-end: curate dataset → LoRA/QLoRA fine-tune → merge → quantize → convert for runtime (Ollama Modelfile / vLLM) → eval vs base.",
+            "description": "Adapt a local model to one job end-to-end: curate dataset → LoRA/QLoRA fine-tune → merge → quantize → convert for runtime (Ollama Modelfile / vLLM) → eval vs base.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Fine-Tuning & Quantizing a Local LLM for a Specific Use Case",
+                "url": "https://huggingface.co/docs/peft/index",
+                "source_type": "documentation",
+                "content": "End-to-end adapt a local model to one job: curate dataset → LoRA/QLoRA → merge adapters → quantize (GGUF/AWQ/GPTQ) → convert for runtime (Ollama/vLLM) → eval vs base (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-13",
+            "title": "Get reliable structured output / tool-calling from local models: JSON mode, GBNF grammars, constrained decoding (Outlines/XGrammar), schema-validate + retry.",
+            "description": "Get reliable structured output / tool-calling from local models: JSON mode, GBNF grammars, constrained decoding (Outlines/XGrammar), schema-validate + retry.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Structured Output & Tool-Calling on Local LLMs",
+                "url": "https://github.com/dottxt-ai/outlines",
+                "source_type": "github",
+                "content": "Reliable JSON/structured output and function-calling from open-weight models: JSON mode, GBNF grammars, constrained decoding (Outlines/XGrammar), schema validation + retries (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-14",
+            "title": "Build fully-local RAG + agents: local embedding models (bge/nomic/gte) + local vector DB (Chroma/Qdrant/pgvector), no external API.",
+            "description": "Build fully-local RAG + agents: local embedding models (bge/nomic/gte) + local vector DB (Chroma/Qdrant/pgvector), no external API.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Fully-Local RAG & Agents (Local Embeddings)",
+                "url": "https://ollama.com/blog/embedding-models",
+                "source_type": "blog",
+                "content": "Run RAG and agents end-to-end with no external API: local embedding models (bge/nomic/gte), local vector DB (Chroma/Qdrant/pgvector), agents on local models (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-15",
+            "title": "Run several local models at once: OpenAI-compatible gateway/router (LocalAI), model-per-task routing, VRAM/RAM scheduling, load/unload.",
+            "description": "Run several local models at once: OpenAI-compatible gateway/router (LocalAI), model-per-task routing, VRAM/RAM scheduling, load/unload.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Running Multiple Local Models at Once",
+                "url": "https://localai.io/",
+                "source_type": "documentation",
+                "content": "Serve several local models concurrently: OpenAI-compatible gateway/router (LocalAI), model-per-task routing, VRAM/RAM scheduling, load/unload strategies (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-16",
+            "title": "Study SIE's approach to consolidating multiple local models behind one inference server — compare vs the router/gateway approach in ll.8.",
+            "description": "Study SIE's approach to consolidating multiple local models behind one inference server — compare vs the router/gateway approach in ll.8.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "SIE — Superlinked Inference Engine",
+                "url": "https://github.com/superlinked/sie",
+                "source_type": "github",
+                "content": "Open-source inference server consolidating multiple AI models (search/retrieval, doc-to-markdown, structured output, content safety, agent loop) into one production cluster."
+              }
+            ]
+          },
+          {
+            "key": "localllm-17",
+            "title": "Stand up real serving infra: GPU/VRAM sizing, Docker/K8s deploy, autoscaling, latency/throughput/GPU-util observability, health checks/SLOs.",
+            "description": "Stand up real serving infra: GPU/VRAM sizing, Docker/K8s deploy, autoscaling, latency/throughput/GPU-util observability, health checks/SLOs.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Serving Infra, Hardware & Monitoring",
+                "url": "https://docs.vllm.ai/en/latest/serving/metrics.html",
+                "source_type": "documentation",
+                "content": "Production serving: GPU/VRAM sizing, CPU/Apple Silicon, Docker/Kubernetes deploy, autoscaling, latency/throughput/GPU-util observability, health checks/SLOs (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-18",
+            "title": "Upgrade a deployed model with zero downtime: blue-green/canary, eval gate before promote, version pinning, rollback, shadow traffic.",
+            "description": "Upgrade a deployed model with zero downtime: blue-green/canary, eval gate before promote, version pinning, rollback, shadow traffic.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Upgrading Local Models Without Downtime",
+                "url": "https://docs.bentoml.com/en/latest/guides/deployment.html",
+                "source_type": "documentation",
+                "content": "Zero-downtime model upgrades: blue-green/canary/A-B swaps, eval gate before promote, version pinning, rollback, shadow traffic, health checks (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-19",
+            "title": "Harden on-prem LLMs: PII detection/redaction, prompt-injection defense, air-gap, data governance/retention, audit logging, compliance mapping.",
+            "description": "Harden on-prem LLMs: PII detection/redaction, prompt-injection defense, air-gap, data governance/retention, audit logging, compliance mapping.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Privacy & Security Hardening for On-Prem LLMs",
+                "url": "https://owasp.org/www-project-top-10-for-large-language-model-applications/",
+                "source_type": "documentation",
+                "content": "Harden on-prem LLMs: PII detection/redaction, prompt-injection defense, air-gapped deploy, data governance/retention, audit logging, compliance mapping (SOC2/ISO27001/GDPR/DPDP) (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-20",
+            "title": "Case study: how Dehurdle's privacy-first on-prem stack composes — coaching agents on local models, data never leaves, why local = the moat.",
+            "description": "Case study: how Dehurdle's privacy-first on-prem stack composes — coaching agents on local models, data never leaves, why local = the moat.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Case Study: Privacy-First On-Prem LLMs (Dehurdle)",
+                "url": "https://dehurdle.com/",
+                "source_type": "blog",
+                "content": "How Dehurdle's privacy-first on-prem stack composes — coaching agents on local models, 'data never leaves', why local inference is the moat for enterprise privacy (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-21",
+            "title": "BUILD the capstone: Qwen2.5-14B-AWQ on vLLM (tool-calling enabled) + local Qdrant memory + coaching tools (get_user_progress/log_session/fetch_plan) + docker-compose + /metrics monitoring + privacy ha",
+            "description": "BUILD the capstone: Qwen2.5-14B-AWQ on vLLM (tool-calling enabled) + local Qdrant memory + coaching tools (get_user_progress/log_session/fetch_plan) + docker-compose + /metrics monitoring + privacy hardening. Fully local, data never leaves the box.",
+            "difficulty": "advanced",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Build: Local-LLM Coaching Agent from Scratch (Dehurdle Capstone)",
+                "url": "local://projects/coaching-agent-local-llm-build",
+                "source_type": "docs",
+                "content": "End-to-end build: Qwen2.5-14B-AWQ served on vLLM (OpenAI-compat, tool-calling) + fully-local Qdrant RAG memory + coaching tools + docker-compose + monitoring + privacy hardening. The project that IS the Dehurdle pitch."
+              }
+            ]
+          },
+          {
+            "key": "localllm-22",
+            "title": "Interview drill: discussion bank + system design 'design a privacy-first on-prem LLM coaching platform'; tradeoff Q&A; likely Dehurdle questions + strong answers.",
+            "description": "Interview drill: discussion bank + system design 'design a privacy-first on-prem LLM coaching platform'; tradeoff Q&A; likely Dehurdle questions + strong answers.",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "LocalLLM Interview Prep & System Design",
+                "url": "https://github.com/alirezadir/Machine-Learning-Interviews",
+                "source_type": "github",
+                "content": "Interview drill: discussion bank + system design 'design a privacy-first on-prem LLM coaching platform'; tradeoff Q&A; likely Dehurdle questions with strong answers (localllm)."
+              }
+            ]
+          },
+          {
+            "key": "localllm-23",
+            "title": "Apply the structured answer framework (ll.13) to a real asked prompt: 'hospital wants GPT-4 internally, data cannot leave servers — design the fully air-gapped GenAI deployment.' Worked 7-step referen",
+            "description": "Apply the structured answer framework (ll.13) to a real asked prompt: 'hospital wants GPT-4 internally, data cannot leave servers — design the fully air-gapped GenAI deployment.' Worked 7-step reference answer (Microsoft L6 Azure system-design round).",
+            "difficulty": "intermediate",
+            "estimated_minutes": 45,
+            "objectives": [
+              "Explain the central idea",
+              "Apply it in a small exercise",
+              "Record evidence of understanding"
+            ],
+            "resources": [
+              {
+                "title": "Day 72 — Air-Gapped GenAI Deployment Architecture for a Hospital (Microsoft L6 Azure) — ScaleDojo",
+                "url": "https://bit.ly/4w9HPKj",
+                "source_type": "article",
+                "content": "System-design interview worked answer: hospital wants GPT-4 internally but data cannot leave servers. 7-step architecture — define air-gap requirements, self-hosted open-weight model on-prem (GPT-4 itself is API-only, disqualified), physical network isolation (no outbound DNS/NTP, firewall-blocked telemetry), manual checksum-verified model updates via physical media/data diode, fully internal logging/monitoring, on-prem fine-tuning on local GPUs (PHI never leaves boundary), continuous network-scan audits of the boundary."
+              }
+            ]
+          }
+        ]
+      }
+    ],
+    "milestones": [
+      {
+        "title": "Complete Local & On-Prem LLMs foundations",
+        "description": "Finish the fixed pathway and produce evidence through sessions and assessments.",
+        "badge_title": "Local & On-Prem LLMs Foundations",
+        "criteria": {
+          "type": "progress",
+          "progress": 1,
+          "target": 7
+        }
+      }
+    ]
+  }
+}

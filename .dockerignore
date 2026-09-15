@@ -1,0 +1,12 @@
+.git
+.data
+*.db
+__pycache__
+pytest-cache-files-*
+*.pyc
+node_modules
+tracker/node_modules
+textClust/frontend/node_modules
+textClust/session
+docs
+tests
