@@ -1,0 +1,1 @@
+export function NotFoundPage() { return <div className="grid place-items-center min-h-screen"><div><p className="label">404</p><h1 className="text-3xl">Nothing here</h1><a className="text-accent underline" href="/">Back to StudyOS</a></div></div>; }
