@@ -41,6 +41,39 @@ class Settings(BaseSettings):
     openai_api_key: str | None = None
     anthropic_api_key: str | None = None
 
+    # Spatial Context (Point & Ask) provider chain; see app/core/spatial/config.py and docs/SPATIAL_CONTEXT.md
+    spatial_providers: str = "bedrock,nvidia,ollama,openrouter,openai,anthropic"
+    bedrock_enabled: bool = False
+    aws_region: str | None = None
+    bedrock_model: str = "amazon.nova-lite-v1:0"
+    bedrock_vision_model: str | None = "amazon.nova-lite-v1:0"
+    openrouter_api_key: str | None = None
+    openrouter_model: str = "qwen/qwen3-4b:free"
+    openrouter_vision_model: str | None = "qwen/qwen2.5-vl-72b-instruct:free"
+    nvidia_api_key: str | None = None
+    nvidia_model: str = "nvidia/nemotron-3.5-lightning-30b-a3b"
+    nvidia_vision_model: str | None = "meta/llama-3.2-11b-vision-instruct"
+    openai_vision_model: str | None = "gpt-4o-mini"
+    anthropic_vision_model: str | None = "claude-sonnet-5"
+    spatial_ocr: bool = True
+    spatial_timeout_seconds: float = 30.0  # per provider; a slow cloud provider falls through to the next one
+    # Zero-install B2C guardrails
+    spatial_anonymous_daily_limit: int = 20
+    spatial_user_daily_limit: int = 200
+    spatial_daily_cost_cap_usd: float = 0.10
+    spatial_max_image_bytes: int = 4_000_000
+    spatial_burst_per_minute: int = 10
+    spatial_anonymous_retention_days: int = 30
+    # Optional CPU speech ("Power mode" / self-host); browser Web Speech is the default in the extension
+    spatial_stt_model: str = "base"
+    spatial_stt_device: str = "cpu"
+    spatial_tts: bool = True
+    spatial_tts_voice: str = "alba"
+    spatial_audio_idle_unload_seconds: int = 300
+    spatial_force_ipv4: bool = False
+    # When set, /api/audio/* is proxied to the audio-worker container instead of running torch in the API process.
+    spatial_audio_url: str | None = None
+
     max_upload_mb: int = 50
     async_ingestion: bool = False
 

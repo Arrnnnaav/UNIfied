@@ -1,2 +1,3 @@
 # Optional local retrieval tier. Install only in images with local embeddings enabled.
 sentence-transformers==3.3.1
+# Speech for Power mode lives in requirements.audio.txt (audio-worker image).

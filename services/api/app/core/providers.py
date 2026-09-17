@@ -156,6 +156,7 @@ def resolve_spatial_marks(marks: list[dict], canvas: dict | None = None, anchors
             continue
         try:
             valid_anchors.append({"id": str(anchor["id"]), "type": str(anchor.get("type", "unknown")),
+                                  "text": str(anchor.get("text") or "")[:1200], "page": anchor.get("page"),
                                   "x": float(bbox.get("x", 0)), "y": float(bbox.get("y", 0)),
                                   "width": max(0.0, float(bbox.get("width", 0))), "height": max(0.0, float(bbox.get("height", 0)))})
         except (TypeError, ValueError):
@@ -168,6 +169,14 @@ def resolve_spatial_marks(marks: list[dict], canvas: dict | None = None, anchors
             continue
         clean = dict(mark)
         try:
+            points = clean.get("points")
+            if kind in {"polygon", "line", "arrow"} and isinstance(points, list) and points:
+                # Freehand strokes arrive as point lists. The client's bbox (which pads open strokes) is the
+                # contract; only derive one from the points when the client sent none.
+                xs = [float(point[0]) for point in points]; ys = [float(point[1]) for point in points]
+                clean["points"] = [[round(x, 2), round(y, 2)] for x, y in zip(xs, ys)][:2000]
+                if not all(axis in clean for axis in ("x", "y", "width", "height")):
+                    clean.update({"x": min(xs), "y": min(ys), "width": max(xs) - min(xs), "height": max(ys) - min(ys)})
             for axis in ("x", "y", "width", "height"):
                 if axis in clean:
                     clean[axis] = max(0.0, float(clean[axis]))
@@ -205,8 +214,14 @@ def resolve_spatial_marks(marks: list[dict], canvas: dict | None = None, anchors
                     match_type = "contains_anchor" if contains_anchor else ("contains_center" if contains_center and not mark_area else "overlap_ranked")
                     scored.append((score, anchor, match_type))
             if scored:
-                score, anchor, match = max(scored, key=lambda item: (item[0], -item[1]["width"] * item[1]["height"]))
-                candidate.update({"anchor_id": anchor["id"], "anchor_type": anchor["type"], "anchor_match": match, "anchor_overlap": round(score, 3)})
+                # Ranking rule shared with apps/extension/geometry.js (see packages/spatial-core): score desc,
+                # then more text (more specific), then smaller area.
+                ranked = sorted(scored, key=lambda item: (-round(item[0], 6), -len(item[1]["text"]), item[1]["width"] * item[1]["height"]))
+                score, anchor, match = ranked[0]
+                candidate.update({"anchor_id": anchor["id"], "anchor_type": anchor["type"], "anchor_match": match, "anchor_overlap": round(score, 3),
+                                  "anchor_text": anchor["text"][:200], "anchor_page": anchor["page"],
+                                  "anchors_ranked": [{"id": item[1]["id"], "type": item[1]["type"], "score": round(item[0], 3), "text": item[1]["text"], "page": item[1]["page"]}
+                                                     for item in ranked[:8]]})
         candidates.append(candidate)
     confidence = 0.78 if candidates else 0.0
     matched = sum("anchor_id" in candidate for candidate in candidates)

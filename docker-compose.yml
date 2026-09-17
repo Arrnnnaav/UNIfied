@@ -98,6 +98,14 @@ services:
       ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
       LLM_TIMEOUT_SECONDS: ${LLM_TIMEOUT_SECONDS:-12}
       FEATURE_TUTOR: ${FEATURE_TUTOR:-true}
+      # Point & Ask providers and guardrails (see docs/SPATIAL_CONTEXT.md)
+      SPATIAL_PROVIDERS: ${SPATIAL_PROVIDERS:-nvidia,openrouter,openai,anthropic,ollama}
+      NVIDIA_API_KEY: ${NVIDIA_API_KEY:-}
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      SPATIAL_ANONYMOUS_DAILY_LIMIT: ${SPATIAL_ANONYMOUS_DAILY_LIMIT:-20}
+      SPATIAL_USER_DAILY_LIMIT: ${SPATIAL_USER_DAILY_LIMIT:-200}
+      SPATIAL_DAILY_COST_CAP_USD: ${SPATIAL_DAILY_COST_CAP_USD:-0.10}
+      SPATIAL_AUDIO_URL: ${SPATIAL_AUDIO_URL:-}
       FEATURE_GITHUB_INGESTION: ${FEATURE_GITHUB_INGESTION:-true}
       FEATURE_YOUTUBE_INGESTION: ${FEATURE_YOUTUBE_INGESTION:-false}
       FEATURE_KNOWLEDGE_MAP: ${FEATURE_KNOWLEDGE_MAP:-true}
@@ -166,7 +174,30 @@ services:
       - uploads:/workspace/services/api/.data/uploads
     command: python -m services.worker.worker
 
+  # Optional CPU speech worker for Point & Ask Power mode: docker compose --profile audio up -d
+  # and set SPATIAL_AUDIO_URL=http://audio-worker:8790 for the api service.
+  audio-worker:
+    build:
+      context: .
+      dockerfile: docker/Dockerfile.audio
+    container_name: lp-audio
+    restart: unless-stopped
+    profiles: ["audio"]
+    environment:
+      SPATIAL_STT_MODEL: ${SPATIAL_STT_MODEL:-base}
+      SPATIAL_TTS_VOICE: ${SPATIAL_TTS_VOICE:-alba}
+      SPATIAL_AUDIO_IDLE_UNLOAD_SECONDS: ${SPATIAL_AUDIO_IDLE_UNLOAD_SECONDS:-300}
+    ports:
+      - "8790:8790"
+    volumes:
+      - hfcache:/root/.cache/huggingface
+    deploy:
+      resources:
+        limits:
+          memory: 4G
+
 volumes:
+  hfcache:
   pgdata:
   redisdata:
   miniodata:

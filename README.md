@@ -6,7 +6,7 @@ It combines the strongest ideas from the two source projects:
 
 - Learning HQ: goals, phases, roadmap, resources, priorities, notes, and progress.
 - DocCluster: normalized resource content, parsing/search direction, semantic discovery, and knowledge-map direction.
-- Spatial Context: a core `Point & Ask` interaction where a student can mark an equation, diagram, paragraph, or code region and attach a question to it.
+- Spatial Context: a core `Point & Ask` interaction where a student circles an equation, diagram, paragraph, or code region on any web page or PDF (browser extension in `apps/extension`) and asks about exactly that.
 
 ## Run locally
 
@@ -38,6 +38,7 @@ Provision the first operator with `POST /api/auth/bootstrap-operator` and the on
 - Persistent adaptive learning sessions: Today materializes planned work, start/complete actions create evidence, and session minutes feed progress and operator metrics
 - Async ingestion worker with Redis and MinIO/S3 support
 - Public GitHub README ingestion and feature-flagged YouTube transcript ingestion
+- Point & Ask anywhere: Chrome extension overlay (freehand/circle/box), bundled pdf.js viewer for PDFs, DOM/PDF text anchors, optional crop, `/api/spatial-context/ask` with follow-up turns
 - Persisted spatial marks with ownership checks
 - Spatial correction feedback and operator quality telemetry
 - Observed model runtime telemetry: provider/model, p50/p95 latency, fallback rate, and failures
@@ -47,7 +48,7 @@ Provision the first operator with `POST /api/auth/bootstrap-operator` and the on
 - Fixed operator-curated package catalog with JSON/ZIP upload, publishing, download, and one-click student installation
 - Operator-provisioned monitoring dashboards with enrolled-student aggregate progress, mastery, activity, minutes, and on-track signals
 - Evidence-based milestones, badge titles, and StudyOS-ID milestone sharing
-- Responsive student UI with Point & Ask preview, optional redacted image crop, and operator operations tables
+- Responsive student UI with Point & Ask history (marks made anywhere, carried into the tutor) and operator operations tables
 
 ## Production deployment notes
 

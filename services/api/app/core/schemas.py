@@ -88,6 +88,31 @@ class SpatialContextCreate(BaseModel):
     image_data: str | None = Field(default=None, max_length=6_000_000)
 
 
+class SpatialPage(BaseModel):
+    url: str = Field(default="", max_length=2000)
+    title: str = Field(default="", max_length=500)
+    surface: str = Field(default="web", max_length=30)
+
+
+class SpatialAsk(BaseModel):
+    """Point & Ask from anywhere: marks over any page/PDF plus a question."""
+    question: str = Field(min_length=1, max_length=2000)
+    marks: list[dict]
+    canvas: dict[str, float] | None = None
+    anchors: list[dict] = Field(default_factory=list)
+    page: SpatialPage = Field(default_factory=SpatialPage)
+    goal_id: str | None = None
+    context_id: str | None = None
+    source: str = Field(default="extension", max_length=30)
+    privacy_policy: str = Field(default="crop_only", max_length=30)
+    image_data: str | None = Field(default=None, max_length=8_000_000)
+    protocol_version: int = 2
+    client_version: str | None = Field(default=None, max_length=40)
+    provider: str | None = Field(default=None, max_length=30)
+    research: bool = False
+    level: str | None = Field(default=None, max_length=10)
+
+
 class SpatialCorrectionCreate(BaseModel):
     marks: list[dict]
     note: str = Field(default="", max_length=1000)

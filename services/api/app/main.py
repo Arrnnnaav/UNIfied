@@ -16,12 +16,12 @@ from fastapi import Depends, FastAPI, File, HTTPException, Query, Request, Respo
 from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from sqlalchemy import delete, select, or_
+from sqlalchemy import delete, select, or_, func
 from sqlalchemy.orm import Session
 
 from app.core.config import get_settings
 from app.core.database import get_db, make_engine
-from app.core.models import Assessment, AssessmentAttempt, AuditLog, Base, Goal, IngestionJob, LearnerProfile, LearningObjective, LearningPackage, LearningSession, MasteryEvidence, Milestone, MilestoneShare, ModelEvent, MonitoringDashboard, MonitoringMember, PackageInstall, Phase, Resource, ResourceChunk, ResourceDocument, ReviewItem, SemanticConcept, SpatialContext, SpatialCorrection, Topic, TopicConceptAlignment, TopicDependency, User
+from app.core.models import Assessment, AssessmentAttempt, AuditLog, Base, Goal, IngestionJob, LearnerProfile, LearningObjective, LearningPackage, LearningSession, MasteryEvidence, Milestone, MilestoneShare, ModelEvent, MonitoringDashboard, MonitoringMember, PackageInstall, Phase, Resource, ResourceChunk, ResourceDocument, ReviewItem, SemanticConcept, SpatialContext, SpatialCorrection, SpatialUsage, Topic, TopicConceptAlignment, TopicDependency, User
 from app.core.jobs import enqueue_optional
 from app.core.llm import grounded_completion
 from app.core.storage import put_bytes
@@ -29,7 +29,11 @@ from app.core.web_ingestion import fetch_github_text, fetch_web_text, fetch_yout
 from app.core.ingestion import chunk_document, content_hash, parse_document
 from app.core.auth import decode_token, hash_password, issue_token, verify_password
 from app.core.providers import choose_model, cosine_similarity, embed_text, resolve_spatial_marks, warm_local_models
-from app.core.schemas import AssessmentAttemptCreate, DependencyCreate, GoalCreate, LearnerProfileUpdate, LearningSessionCreate, LearningSessionUpdate, LoginRequest, MilestoneCreate, MilestoneShareCreate, MonitoringDashboardCreate, MonitoringMemberCreate, ObjectiveCreate, PackageCreate, PackageInstallCreate, ProgressUpdate, RegisterRequest, ResourceCreate, SpatialContextCreate, SpatialCorrectionCreate, TopicCreate, TopicUpdate, TutorAsk
+from app.core.spatial.audio import audio_status, synthesize, transcribe
+from app.core.spatial.config import settings as spatial_settings
+from app.core.spatial.providers import answer_stream as spatial_answer_stream, clean_answer, provider_status
+from app.core.spatial import research as spatial_research
+from app.core.schemas import AssessmentAttemptCreate, DependencyCreate, GoalCreate, LearnerProfileUpdate, LearningSessionCreate, LearningSessionUpdate, LoginRequest, MilestoneCreate, MilestoneShareCreate, MonitoringDashboardCreate, MonitoringMemberCreate, ObjectiveCreate, PackageCreate, PackageInstallCreate, ProgressUpdate, RegisterRequest, ResourceCreate, SpatialAsk, SpatialContextCreate, SpatialCorrectionCreate, TopicCreate, TopicUpdate, TutorAsk
 
 settings = get_settings()
 engine = make_engine(settings.database_url)
@@ -65,6 +69,127 @@ def current_user(db: Session, request: Request | None = None) -> User:
         user = User(name="Demo Student", email="demo@student.local", role="student")
         db.add(user); db.commit(); db.refresh(user)
     return user
+
+
+SPATIAL_PROTOCOL_VERSION = 2  # bump when the ask payload/response shape changes incompatibly
+
+
+def current_actor(db: Session, request: Request) -> User:
+    """Point & Ask works before sign-up: a bearer token wins, otherwise the X-Device-ID header maps to an
+    anonymous user row so quotas and history exist from the first ask. Signing in later moves that history."""
+    authorization = request.headers.get("Authorization", "")
+    if authorization.lower().startswith("bearer "):
+        return current_user(db, request)
+    device_id = re.sub(r"[^a-zA-Z0-9-]", "", request.headers.get("X-Device-ID", ""))[:64]
+    if device_id:
+        email = f"device-{device_id.lower()}@anon.point-ask"
+        user = db.scalar(select(User).where(User.email == email))
+        if not user:
+            user = User(name="Anonymous", email=email, role="anonymous")
+            db.add(user); db.commit(); db.refresh(user)
+        return user
+    return current_user(db, request)
+
+
+def spatial_usage(db: Session, user: User) -> SpatialUsage:
+    day = datetime.utcnow().strftime("%Y-%m-%d")
+    usage = db.scalar(select(SpatialUsage).where(SpatialUsage.owner_id == user.id, SpatialUsage.day == day))
+    if not usage:
+        usage = SpatialUsage(owner_id=user.id, day=day, asks=0, cost_usd=0.0)
+        db.add(usage); db.flush()
+    return usage
+
+
+def spatial_quota(db: Session, user: User) -> dict:
+    usage = spatial_usage(db, user)
+    limit = settings.spatial_anonymous_daily_limit if user.role == "anonymous" else settings.spatial_user_daily_limit
+    return {"limit": limit, "used": usage.asks, "remaining": max(0, limit - usage.asks), "signed_in": user.role != "anonymous",
+            "cost_usd": round(usage.cost_usd, 4), "cost_cap_usd": settings.spatial_daily_cost_cap_usd}
+
+
+_BURST: dict[str, list[float]] = {}
+_BURST_LOCK = threading.Lock()
+
+
+def enforce_burst(owner_key: str) -> None:
+    """Sliding-window per-actor limit (SPATIAL_BURST_PER_MINUTE) so one loop cannot drain the daily budget."""
+    now = perf_counter()
+    with _BURST_LOCK:
+        recent = [t for t in _BURST.get(owner_key, []) if now - t < 60]
+        if len(recent) >= settings.spatial_burst_per_minute:
+            raise HTTPException(429, {"code": "RATE_LIMITED", "message": f"too many asks; wait a minute (limit {settings.spatial_burst_per_minute}/min)"})
+        recent.append(now); _BURST[owner_key] = recent
+
+
+def purge_anonymous(db: Session, days: int | None = None) -> int:
+    """Delete anonymous device users, their marks and usage older than the retention window (privacy policy: 30 days)."""
+    cutoff = datetime.utcnow() - timedelta(days=days if days is not None else settings.spatial_anonymous_retention_days)
+    ghosts = db.scalars(select(User).where(User.role == "anonymous", User.created_at < cutoff)).all()
+    removed = 0
+    for ghost in ghosts:
+        stale = db.scalars(select(SpatialContext).where(SpatialContext.owner_id == ghost.id, SpatialContext.created_at < cutoff)).all()
+        for context in stale:
+            db.execute(delete(SpatialCorrection).where(SpatialCorrection.context_id == context.id))
+            db.execute(delete(ReviewItem).where(ReviewItem.spatial_context_id == context.id))
+            db.delete(context); removed += 1
+        if not db.scalar(select(SpatialContext.id).where(SpatialContext.owner_id == ghost.id)):
+            db.execute(delete(SpatialUsage).where(SpatialUsage.owner_id == ghost.id))
+            db.delete(ghost)
+    db.commit()
+    return removed
+
+
+def schedule_anonymous_purge() -> None:
+    def run():
+        import time
+        while True:
+            try:
+                with Session(engine) as db:
+                    purge_anonymous(db)
+            except Exception:
+                pass
+            time.sleep(24 * 3600)
+    threading.Thread(target=run, name="studyos-anonymous-purge", daemon=True).start()
+
+
+def enforce_spatial_quota(db: Session, user: User) -> SpatialUsage:
+    enforce_burst(str(user.id))
+    usage = spatial_usage(db, user)
+    limit = settings.spatial_anonymous_daily_limit if user.role == "anonymous" else settings.spatial_user_daily_limit
+    if usage.asks >= limit:
+        raise HTTPException(429, {"code": "RATE_LIMITED", "message": f"daily limit of {limit} asks reached" + (" — sign in for more" if user.role == "anonymous" else ""),
+                                  "limit": limit, "used": usage.asks})
+    if usage.cost_usd >= settings.spatial_daily_cost_cap_usd:
+        raise HTTPException(402, {"code": "COST_CAP", "message": "today's answer budget is used up; try again tomorrow or use Power mode with a local model"})
+    return usage
+
+
+def adopt_device_history(db: Session, user: User, request: Request) -> int:
+    """After sign-in/sign-up, hand the anonymous device's marks to the real account."""
+    device_id = re.sub(r"[^a-zA-Z0-9-]", "", request.headers.get("X-Device-ID", ""))[:64]
+    if not device_id or user.role == "anonymous":
+        return 0
+    ghost = db.scalar(select(User).where(User.email == f"device-{device_id.lower()}@anon.point-ask"))
+    if not ghost or ghost.id == user.id:
+        return 0
+    moved = 0
+    for context in db.scalars(select(SpatialContext).where(SpatialContext.owner_id == ghost.id)).all():
+        context.owner_id = user.id; moved += 1
+    db.commit()
+    return moved
+
+
+def owned_spatial_filter(user: User):
+    """Marks belong to the student directly (extension) or through one of their goals (in-app)."""
+    return or_(SpatialContext.owner_id == user.id, SpatialContext.goal_id.in_(select(Goal.id).where(Goal.owner_id == user.id)))
+
+
+def serialize_spatial(context: SpatialContext) -> dict:
+    answer = json.loads(context.answer_json or "{}")
+    return {"id": str(context.id), "goal_id": str(context.goal_id) if context.goal_id else None, "utterance": context.utterance,
+            "marks": json.loads(context.marks_json), "source": context.source, "confidence": context.confidence, "review_status": context.review_status,
+            "page": {"url": context.page_url, "title": context.page_title, "surface": json.loads(context.resolution_json or "{}").get("surface", "web")},
+            "answer": answer, "turns": len(answer.get("history", [])), "created_at": context.created_at.isoformat()}
 
 
 def parse_id(value: str) -> uuid.UUID:
@@ -133,11 +258,12 @@ def synthesis_route_ready() -> bool:
     return bool(settings.openai_api_key or settings.anthropic_api_key)
 
 
-def record_model_event(db: Session, task: str, metadata: dict, latency_ms: int, confidence: float | None = None) -> None:
+def record_model_event(db: Session, task: str, metadata: dict, latency_ms: int, confidence: float | None = None, cost_usd: float = 0.0) -> None:
     """Persist aggregate-safe model telemetry; prompts, answers, and document text never enter this record."""
     db.add(ModelEvent(task=task, provider=str(metadata.get("provider", "unknown")),
                       model=str(metadata.get("model", "unknown")), status=str(metadata.get("status", "unknown")),
-                      latency_ms=max(0, int(latency_ms)), confidence=confidence))
+                      latency_ms=max(0, int(latency_ms)), confidence=confidence, cost_usd=float(cost_usd or 0.0),
+                      client_version=str(metadata.get("client_version") or "")[:40]))
 
 
 def serialize_topic(topic: Topic) -> dict:
@@ -189,7 +315,11 @@ def ensure_sqlite_schema() -> None:
             "spatial_contexts": {
                 "sensitivity_class": "VARCHAR(30) DEFAULT 'private'", "confidence": "FLOAT DEFAULT 0",
                 "resolution_json": "TEXT DEFAULT '{}'", "processing_ms": "INTEGER DEFAULT 0",
+                "owner_id": "CHAR(32)", "page_url": "VARCHAR(2000) DEFAULT ''", "page_title": "VARCHAR(500) DEFAULT ''", "answer_json": "TEXT DEFAULT '{}'",
+                "review_status": "VARCHAR(20) DEFAULT 'pending'",
             },
+            "model_events": {"cost_usd": "FLOAT DEFAULT 0", "client_version": "VARCHAR(40) DEFAULT ''"},
+            "review_items": {"spatial_context_id": "CHAR(32)", "prompt": "TEXT DEFAULT ''"},
             "users": {"password_hash": "VARCHAR(255) DEFAULT ''", "role": "VARCHAR(30) DEFAULT 'student'", "student_id": "VARCHAR(30)"},
             "learner_profiles": {"college_name": "VARCHAR(200) DEFAULT ''", "college_year": "VARCHAR(40) DEFAULT ''", "branch": "VARCHAR(120) DEFAULT ''", "college_id": "VARCHAR(120) DEFAULT ''", "coding_profiles_json": "TEXT DEFAULT '{}'"},
             "ingestion_jobs": {"storage_key": "VARCHAR(500) DEFAULT ''"},
@@ -205,6 +335,17 @@ def ensure_sqlite_schema() -> None:
             for name, definition in columns.items():
                 if name not in existing:
                     connection.execute(text(f"ALTER TABLE {table} ADD COLUMN {name} {definition}"))
+        if "spatial_contexts" in inspector.get_table_names():
+            # goal_id became nullable for marks made anywhere; SQLite cannot ALTER nullability, so rebuild once.
+            goal_column = next(column for column in inspector.get_columns("spatial_contexts") if column["name"] == "goal_id")
+            if not goal_column["nullable"]:
+                for index in inspector.get_indexes("spatial_contexts"):
+                    connection.execute(text(f"DROP INDEX IF EXISTS {index['name']}"))
+                connection.execute(text("ALTER TABLE spatial_contexts RENAME TO spatial_contexts_old"))
+                SpatialContext.__table__.create(connection)
+                shared = ", ".join(column.name for column in SpatialContext.__table__.columns)
+                connection.execute(text(f"INSERT INTO spatial_contexts ({shared}) SELECT {shared} FROM spatial_contexts_old"))
+                connection.execute(text("DROP TABLE spatial_contexts_old"))
         if "users" in inspector.get_table_names():
             rows = connection.execute(text("SELECT id FROM users WHERE student_id IS NULL OR student_id = ''")).fetchall()
             for row in rows:
@@ -223,11 +364,13 @@ async def lifespan(app: FastAPI):
         with Session(engine) as db:
             seed_demo(db, current_user(db))
     schedule_model_warmup()
+    schedule_anonymous_purge()
     yield
 
 
 app = FastAPI(title="Unified Learning Platform", version="0.1.0", lifespan=lifespan)
-app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_methods=["*"], allow_headers=["*"], allow_credentials=True)
+app.add_middleware(CORSMiddleware, allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"], allow_origin_regex=r"^(chrome|moz)-extension://.*$",
+                   allow_methods=["*"], allow_headers=["*"], allow_credentials=True)
 
 
 @app.middleware("http")
@@ -240,8 +383,6 @@ async def security_headers(request: Request, call_next):
     return response
 
 
-@app.get("/api/health")
-def health(): return {"status": "ok", "product": "Unified Learning Platform"}
 
 
 @app.get("/api/health/live")
@@ -271,7 +412,7 @@ def readiness(response: Response):
 
 
 @app.post("/api/auth/register")
-def register(payload: RegisterRequest, db: Session = Depends(get_db)):
+def register(payload: RegisterRequest, request: Request, db: Session = Depends(get_db)):
     email = payload.email.lower().strip()
     if db.scalar(select(User).where(User.email == email)):
         raise HTTPException(409, "email already registered")
@@ -279,7 +420,8 @@ def register(payload: RegisterRequest, db: Session = Depends(get_db)):
     db.add(user); db.flush()
     db.add(LearnerProfile(user_id=user.id, college_name=payload.college_name.strip(), college_year=payload.college_year.strip(), branch=payload.branch.strip(), college_id=payload.college_id.strip()))
     db.commit(); db.refresh(user)
-    return {"access_token": issue_token(str(user.id), user.role), "token_type": "bearer",
+    adopted = adopt_device_history(db, user, request)
+    return {"access_token": issue_token(str(user.id), user.role), "token_type": "bearer", "adopted_marks": adopted,
             "user": {"id": str(user.id), "student_id": user.student_id, "name": user.name, "role": user.role}}
 
 
@@ -574,14 +716,15 @@ def list_milestone_shares(request: Request, db: Session = Depends(get_db)):
 
 
 @app.post("/api/auth/login")
-def login(payload: LoginRequest, db: Session = Depends(get_db)):
+def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)):
     identifier = payload.email.strip()
     user = db.scalar(select(User).where(or_(User.email == identifier.lower(), User.student_id == identifier.upper())))
     if not user:
         user = db.scalar(select(User).join(LearnerProfile).where(LearnerProfile.college_id == identifier))
     if not user or not verify_password(payload.password, user.password_hash):
         raise HTTPException(401, "invalid credentials")
-    return {"access_token": issue_token(str(user.id), user.role), "token_type": "bearer",
+    adopted = adopt_device_history(db, user, request)
+    return {"access_token": issue_token(str(user.id), user.role), "token_type": "bearer", "adopted_marks": adopted,
             "user": {"id": str(user.id), "student_id": user.student_id, "name": user.name, "role": user.role}}
 
 
@@ -609,7 +752,7 @@ def bootstrap_operator(payload: RegisterRequest, request: Request, db: Session =
 @app.get("/api/dashboard")
 def dashboard(request: Request, db: Session = Depends(get_db)):
     user = current_user(db, request); goal = db.scalar(select(Goal).where(Goal.owner_id == user.id).order_by(Goal.status))
-    if not goal: return {"user": {"name": user.name}, "goal": None, "today": []}
+    if not goal: return {"user": {"name": user.name}, "goal": None, "today": [], "spatial_reviews": []}
     topics = [t for p in goal.phases for t in p.topics]
     ranked_actions = recommendations(request, str(goal.id), db)
     today = [{"kind": item["kind"], "title": item["action"], "minutes": item["estimated_minutes"], "reason": item["reason"], "topic_id": item["topic_id"]} for item in ranked_actions[:4]]
@@ -622,8 +765,30 @@ def dashboard(request: Request, db: Session = Depends(get_db)):
                                        kind=item["kind"], planned_minutes=item["minutes"]))
             db.commit()
             sessions = db.scalars(select(LearningSession).where(LearningSession.goal_id == goal.id, LearningSession.status.in_(["planned", "active"])).order_by(LearningSession.created_at.desc()).limit(8)).all()
+    # Spatial review items (from "Quiz me later" in Point & Ask)
+    spatial_reviews = []
+    pa_goal = db.scalar(select(Goal).where(Goal.owner_id == user.id, Goal.title == "Point & Ask"))
+    if pa_goal:
+        pa_topics = [t for p in pa_goal.phases for t in p.topics]
+        for topic in pa_topics:
+            reviews = db.scalars(select(ReviewItem).where(ReviewItem.topic_id == topic.id, ReviewItem.status == "due").order_by(ReviewItem.due_at)).all()
+            for item in reviews:
+                if item.spatial_context_id:
+                    ctx = db.get(SpatialContext, item.spatial_context_id)
+                    if ctx:
+                        marked = "; ".join(a.get("text", "")[:80] for a in (json.loads(ctx.answer_json or "{}").get("anchors_used", [])[:2]) if a.get("text"))
+                        spatial_reviews.append({
+                            "id": str(item.id),
+                            "spatial_context_id": str(ctx.id),
+                            "title": "Point & Ask: " + (item.prompt[:80] or "Review your mark"),
+                            "minutes": 8,
+                            "reason": f"Review: you circled {marked or 'a region'} and asked: {ctx.utterance[:60]}…",
+                            "due_at": item.due_at.isoformat(),
+                            "kind": "spatial_review"
+                        })
     return {"user": {"name": user.name}, "goal": serialize_goal(goal),
             "today": today,
+            "spatial_reviews": spatial_reviews,
             "sessions": [serialize_session(item) for item in sessions],
             "plan_status": plan_status(goal, topics),
             "stats": {"topics": len(topics), "mastered": sum(t.mastery >= .8 for t in topics),
@@ -646,7 +811,7 @@ def recommendations(request: Request, goal_id: str | None = Query(default=None),
     for dependency in dependencies:
         prerequisites_by_topic[dependency.topic_id].append(dependency.prerequisite_topic_id)
     mastery_by_id = {topic.id: topic.mastery for topic in topics}
-    result = [{"topic_id": str(item.topic_id), "action": "Review: " + item.topic.title, "kind": "review", "estimated_minutes": 8,
+    result = [{"topic_id": str(item.topic_id), "action": ("Point & Ask review: " + item.prompt[:90]) if item.prompt else "Review: " + item.topic.title, "kind": "review", "estimated_minutes": 8,
                "priority": "high", "reason": "scheduled retention review is due", "mastery": item.topic.mastery, "dependencies": []} for item in due_reviews]
     for index, topic in enumerate(topics):
         if topic.mastery >= .8 and topic.progress >= 1: continue
@@ -755,13 +920,16 @@ def tutor_ask(payload: TutorAsk, request: Request, db: Session = Depends(get_db)
     topic_id = parse_id(payload.topic_id) if payload.topic_id else None
     owned_goals = select(Goal.id).where(Goal.owner_id == user.id)
     spatial = db.get(SpatialContext, parse_id(payload.spatial_context_id)) if payload.spatial_context_id else None
-    if spatial and spatial.goal_id not in [row[0] for row in db.execute(select(Goal.id).where(Goal.owner_id == user.id)).all()]:
+    if spatial and db.scalar(select(SpatialContext.id).where(SpatialContext.id == spatial.id, owned_spatial_filter(user))) is None:
         raise HTTPException(404, "spatial context not found")
     spatial_resolution = json.loads(spatial.resolution_json or "{}") if spatial else {}
     spatial_hint = ""
     if spatial:
         anchor_types = ", ".join(str(item.get("anchor_type")) for item in spatial_resolution.get("candidates", []) if item.get("anchor_type"))
         spatial_hint = f"\nSpatial context: selected material confidence={spatial.confidence:.2f}; surface={spatial_resolution.get('surface', 'unknown')}; structured anchors={anchor_types or 'none'}. Student asks: {spatial.utterance}"
+        marked_text = "; ".join(item.get("text", "")[:160] for item in json.loads(spatial.answer_json or "{}").get("anchors_used", []) if item.get("text"))
+        if marked_text:
+            spatial_hint += f" Marked text: {marked_text}"
         vision = spatial_resolution.get("vision") or {}
         if vision.get("status") == "generated":
             labels = ", ".join(str(label) for label in vision.get("labels", []))
@@ -1068,7 +1236,8 @@ def attempt_assessment(assessment_id: str, payload: AssessmentAttemptCreate, req
 def review_queue(request: Request, db: Session = Depends(get_db)):
     user = current_user(db, request); goal_ids = select(Goal.id).where(Goal.owner_id == user.id)
     rows = db.scalars(select(ReviewItem).join(Topic).join(Phase).where(Phase.goal_id.in_(goal_ids), ReviewItem.status == "due").order_by(ReviewItem.due_at).limit(50)).all()
-    return [{"id": str(item.id), "topic_id": str(item.topic_id), "topic": item.topic.title, "due_at": item.due_at.isoformat(), "interval_days": item.interval_days} for item in rows]
+    return [{"id": str(item.id), "topic_id": str(item.topic_id), "topic": item.topic.title, "due_at": item.due_at.isoformat(), "interval_days": item.interval_days,
+             "prompt": item.prompt or "", "spatial_context_id": str(item.spatial_context_id) if item.spatial_context_id else None} for item in rows]
 
 
 @app.post("/api/review/{review_id}/complete")
@@ -1297,13 +1466,242 @@ def save_spatial_context(payload: SpatialContextCreate, request: Request, db: Se
     resolution = resolve_spatial_marks(payload.marks, payload.canvas, payload.anchors, payload.image_data, payload.utterance)
     resolution.update({"surface": payload.surface, "crop_ref": payload.crop_ref, "privacy_policy": payload.privacy_policy})
     record_model_event(db, "spatial_resolve", choose_model("spatial_resolve", latency_sensitive=True).__dict__, resolution["latency_ms"], resolution["confidence"])
-    context = SpatialContext(goal_id=goal.id, utterance=payload.utterance, marks_json=json.dumps(payload.marks), source=payload.source,
+    context = SpatialContext(goal_id=goal.id, owner_id=user.id, utterance=payload.utterance, marks_json=json.dumps(payload.marks), source=payload.source,
                              sensitivity_class="private", confidence=resolution["confidence"],
                              resolution_json=json.dumps(resolution), processing_ms=resolution["latency_ms"])
     db.add(context); db.commit(); db.refresh(context)
     return {"id": str(context.id), "message": "Spatial context saved. It can now ground tutor or recommendation actions.",
             "marks": len(payload.marks), "confidence": context.confidence, "resolution": resolution,
             "model": choose_model("spatial_resolve", latency_sensitive=True).__dict__}
+
+
+def goal_evidence(db: Session, user: User, goal_id: uuid.UUID | None, question: str, anchors: list[dict]) -> list[dict]:
+    """Cheap lexical retrieval over the student's own resources; extension asks rarely have a goal."""
+    if not goal_id:
+        return []
+    terms = {term for term in re.findall(r"[a-z0-9_]+", (question + " " + " ".join(item.get("text", "") for item in anchors)).lower()) if len(term) > 3}
+    if not terms:
+        return []
+    chunks = db.scalars(select(ResourceChunk).join(ResourceDocument).join(Resource).where(Resource.goal_id == goal_id, Resource.trust_status != "rejected").limit(300)).all()
+    scored = sorted(((len(terms & set(re.findall(r"[a-z0-9_]+", chunk.text.lower()))) / len(terms), chunk) for chunk in chunks), key=lambda item: item[0], reverse=True)
+    return [{"title": chunk.document.resource.title, "snippet": chunk.text[:300], "page": chunk.page, "chunk": chunk.ordinal, "score": round(score, 3)} for score, chunk in scored[:3] if score >= .15]
+
+
+def spatial_anchors_used(resolution: dict, anchors: list[dict]) -> list[dict]:
+    """Anchors the resolver ranked, with the role/index of the mark they belong to so the client can highlight them."""
+    lookup = {str(anchor.get("id")): anchor for anchor in anchors if isinstance(anchor, dict) and anchor.get("id")}
+    used, seen = [], set()
+    for candidate in resolution["candidates"]:
+        for ranked in candidate.get("anchors_ranked", []):
+            if ranked["id"] in seen or ranked["score"] < .25:
+                continue
+            seen.add(ranked["id"]); source = lookup.get(ranked["id"], {})
+            used.append({"id": ranked["id"], "type": ranked["type"], "text": str(source.get("text") or "")[:1500], "score": ranked["score"], "page": ranked.get("page"),
+                         "href": str(source.get("href") or "")[:500], "src": str(source.get("src") or "")[:500],
+                         "role": candidate.get("role", "reference"), "mark_index": candidate.get("mark_index", 0), "bbox": source.get("bbox")})
+    return used
+
+
+def spatial_prepare(payload: SpatialAsk, request: Request, db: Session) -> dict:
+    """Front half shared by ask / ask-stream: actor, protocol, quota, ownership, resolver."""
+    if payload.protocol_version < SPATIAL_PROTOCOL_VERSION:
+        raise HTTPException(426, {"code": "CLIENT_OUTDATED", "message": f"extension speaks protocol {payload.protocol_version}, server needs {SPATIAL_PROTOCOL_VERSION}; update the extension"})
+    user = current_actor(db, request)
+    if not payload.marks:
+        raise HTTPException(400, {"code": "NO_MARKS", "message": "at least one mark is required"})
+    goal = db.get(Goal, parse_id(payload.goal_id)) if payload.goal_id else None
+    if payload.goal_id and (not goal or goal.owner_id != user.id):
+        raise HTTPException(404, {"code": "GOAL_NOT_FOUND", "message": "goal not found"})
+    context = None
+    if payload.context_id:
+        context = db.scalar(select(SpatialContext).where(SpatialContext.id == parse_id(payload.context_id), owned_spatial_filter(user)))
+        if not context:
+            raise HTTPException(404, {"code": "CONTEXT_NOT_FOUND", "message": "spatial context not found"})
+    usage = enforce_spatial_quota(db, user)
+    image_data = payload.image_data if payload.privacy_policy in {"crop_only", "full_frame"} else None
+    if image_data and len(image_data) > settings.spatial_max_image_bytes * 4 // 3 + 64:
+        image_data = None  # oversized crop: fall back to text/OCR-less answer rather than failing the ask
+    resolution = resolve_spatial_marks(payload.marks, payload.canvas, payload.anchors, None, payload.question)
+    resolution.update({"surface": payload.page.surface, "privacy_policy": payload.privacy_policy, "image_attached": bool(image_data)})
+    used = spatial_anchors_used(resolution, payload.anchors)
+    history = (json.loads(context.answer_json or "{}") if context else {}).get("history", [])
+    evidence = goal_evidence(db, user, goal.id if goal else None, payload.question, used)
+    sources = spatial_research.gather(payload.question, used) if payload.research else []
+    return {"user": user, "goal": goal, "context": context, "usage": usage, "image_data": image_data, "resolution": resolution,
+            "used": used, "history": history, "evidence": evidence, "sources": sources, "started": perf_counter()}
+
+
+def spatial_finish(payload: SpatialAsk, prep: dict, text: str, meta: dict, db: Session) -> dict:
+    """Back half: persist the turn, usage, telemetry; build the response document."""
+    user, goal, context = prep["user"], prep["goal"], prep["context"]
+    text = clean_answer(text)
+    history = prep["history"] + [{"question": payload.question, "answer": text, "provider": meta.get("provider"), "model": meta.get("model"), "at": datetime.utcnow().isoformat(timespec="seconds")}]
+    answer_record = {"text": text, "history": history, "anchors_used": prep["used"], "evidence": prep["evidence"], "sources": prep["sources"], "meta": meta}
+    if context is None:
+        context = SpatialContext(goal_id=goal.id if goal else None, owner_id=user.id, utterance=payload.question, marks_json=json.dumps(payload.marks), source=payload.source,
+                                 sensitivity_class="private", page_url=payload.page.url, page_title=payload.page.title)
+        db.add(context)
+    resolution = prep["resolution"]
+    context.confidence = resolution["confidence"]; context.resolution_json = json.dumps(resolution); context.answer_json = json.dumps(answer_record)
+    context.processing_ms = round((perf_counter() - prep["started"]) * 1000)
+    cost = float(meta.get("cost_usd") or 0.0)
+    usage = prep["usage"]; usage.asks += 1; usage.cost_usd += cost
+    record_model_event(db, "spatial_resolve", choose_model("spatial_resolve", latency_sensitive=True).__dict__, resolution["latency_ms"], resolution["confidence"])
+    record_model_event(db, "spatial_answer", {"provider": meta.get("provider"), "model": meta.get("model"), "status": meta.get("status"), "client_version": payload.client_version}, context.processing_ms, resolution["confidence"], cost)
+    db.commit(); db.refresh(context)
+    limit = settings.spatial_anonymous_daily_limit if user.role == "anonymous" else settings.spatial_user_daily_limit
+    return {**serialize_spatial(context), "answer": text, "anchors_used": prep["used"], "evidence": prep["evidence"], "sources": prep["sources"],
+            "cited": spatial_research.cited_ids(text, prep["sources"]), "provider": meta.get("provider"), "model": meta.get("model"),
+            "status": meta.get("status"), "vision": bool(meta.get("vision")), "ocr": bool(meta.get("ocr")), "diagram": bool(meta.get("diagram")), "level": meta.get("level"), "errors": meta.get("errors", {}), "note": meta.get("note"),
+            "cost_usd": cost, "resolution": resolution, "latency_ms": context.processing_ms, "confirmation_required": resolution["confidence"] < .6,
+            "quota": {"limit": limit, "used": usage.asks, "remaining": max(0, limit - usage.asks), "signed_in": user.role != "anonymous"},
+            "protocol_version": SPATIAL_PROTOCOL_VERSION}
+
+
+@app.post("/api/spatial-context/ask")
+def spatial_ask(payload: SpatialAsk, request: Request, db: Session = Depends(get_db)):
+    """Point & Ask from anywhere: marks over any page or PDF, DOM/PDF anchors, optional crop, one question.
+    The mark is a reference, never authority: this endpoint only explains, it never acts."""
+    prep = spatial_prepare(payload, request, db)
+    parts, meta = [], {}
+    for item in spatial_answer_stream(payload.question, payload.page.model_dump(), prep["used"], prep["image_data"], prep["history"], payload.provider, prep["sources"], payload.level):
+        if isinstance(item, dict): meta = item
+        else: parts.append(item)
+    return spatial_finish(payload, prep, "".join(parts), meta, db)
+
+
+@app.post("/api/spatial-context/ask/stream")
+def spatial_ask_stream(payload: SpatialAsk, request: Request, db: Session = Depends(get_db)):
+    """SSE: `status` -> many `delta` {text} -> `complete` (same document as /ask) or `error` {code, message}."""
+    def event(name: str, data: dict) -> str:
+        return f"event: {name}\ndata: {json.dumps(data)}\n\n"
+
+    def events():
+        try:
+            prep = spatial_prepare(payload, request, db)
+        except HTTPException as exc:
+            detail = exc.detail if isinstance(exc.detail, dict) else {"code": "BAD_REQUEST", "message": str(exc.detail)}
+            yield event("error", detail); return
+        yield event("status", {"status": "resolving_mark", "anchors": len(prep["used"]), "confidence": prep["resolution"]["confidence"]})
+        parts, meta = [], {}
+        try:
+            for item in spatial_answer_stream(payload.question, payload.page.model_dump(), prep["used"], prep["image_data"], prep["history"], payload.provider, prep["sources"], payload.level):
+                if isinstance(item, dict): meta = item
+                else:
+                    parts.append(item); yield event("delta", {"text": item})
+            yield event("complete", spatial_finish(payload, prep, "".join(parts), meta, db))
+        except Exception as exc:
+            yield event("error", {"code": "ASK_FAILED", "message": f"ask failed: {type(exc).__name__}"})
+    return StreamingResponse(events(), media_type="text/event-stream", headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"})
+
+
+@app.get("/api/health")
+def health(request: Request, db: Session = Depends(get_db)):
+    """Extension bootstrap: protocol, providers, speech engines, and this device's/user's quota."""
+    quota = None
+    if request.headers.get("Authorization") or request.headers.get("X-Device-ID"):
+        try:
+            quota = spatial_quota(db, current_actor(db, request)); db.commit()
+        except HTTPException:
+            quota = None
+    try:
+        db.execute(select(1)); db_status = "ok"
+    except Exception as exc:
+        db_status = f"error: {type(exc).__name__}"
+    return {"status": "ok" if db_status == "ok" else "degraded", "db": db_status, "protocol_version": SPATIAL_PROTOCOL_VERSION, "providers": provider_status(), "provider_order": list(spatial_settings.provider_order),
+            "ocr": spatial_settings.ocr_enabled, "audio": audio_status(), "quota": quota, "version": app.version, "product": "Unified Learning Platform"}
+
+
+def audio_proxy(path: str, **kwargs) -> Response:
+    """Forward speech work to the audio-worker container (SPATIAL_AUDIO_URL) and relay its answer verbatim."""
+    import httpx
+    try:
+        with httpx.Client(trust_env=False, timeout=settings.spatial_timeout_seconds * 2) as client:
+            upstream = client.post(f"{settings.spatial_audio_url.rstrip('/')}/{path}", **kwargs)
+    except Exception as exc:
+        raise HTTPException(503, {"code": "AUDIO_WORKER_DOWN", "message": f"audio worker unreachable: {type(exc).__name__}"}) from exc
+    return Response(content=upstream.content, status_code=upstream.status_code, media_type=upstream.headers.get("content-type", "application/json"),
+                    headers={k: v for k, v in upstream.headers.items() if k.lower().startswith("x-tts")})
+
+
+@app.post("/api/audio/transcribe")
+async def audio_transcribe(request: Request, audio: UploadFile = File(...), db: Session = Depends(get_db)):
+    """Power mode speech -> text (faster-whisper on the server). Browser Web Speech is the default path."""
+    current_actor(db, request)
+    data = await audio.read()
+    if not data:
+        raise HTTPException(400, {"code": "EMPTY_AUDIO", "message": "empty audio"})
+    if len(data) > 25_000_000:
+        raise HTTPException(413, {"code": "AUDIO_TOO_LARGE", "message": "audio exceeds 25 MB"})
+    if settings.spatial_audio_url:
+        return audio_proxy("stt", files={"audio": (audio.filename or "question.webm", data, audio.content_type or "audio/webm")})
+    result = transcribe(data)
+    if result["status"] != "ok":
+        raise HTTPException(503, {"code": "STT_UNAVAILABLE", "message": result.get("error", "speech-to-text unavailable")})
+    return result
+
+
+@app.post("/api/audio/synthesize")
+def audio_synthesize(payload: dict, request: Request, db: Session = Depends(get_db)):
+    """Power mode text -> WAV (pocket-tts on the server)."""
+    current_actor(db, request)
+    text = str(payload.get("text", ""))[:4000].strip()
+    if not text:
+        raise HTTPException(400, {"code": "EMPTY_TEXT", "message": "text is required"})
+    if settings.spatial_audio_url:
+        return audio_proxy("tts", json={"text": text, "voice": payload.get("voice") or None})
+    wav, meta = synthesize(text, payload.get("voice") or None)
+    if wav is None:
+        raise HTTPException(503, {"code": "TTS_UNAVAILABLE", "message": meta.get("error", meta.get("status", "text-to-speech unavailable"))})
+    return Response(content=wav, media_type="audio/wav", headers={"X-TTS-Seconds": str(meta["seconds"]), "X-TTS-Voice": meta["voice"]})
+
+
+def ensure_point_ask_topic(db: Session, user: User) -> Topic:
+    """Marks made outside any goal still need a topic for the review queue: one 'Point & Ask' goal per user."""
+    goal = db.scalar(select(Goal).where(Goal.owner_id == user.id, Goal.title == "Point & Ask"))
+    if not goal:
+        goal = Goal(owner_id=user.id, title="Point & Ask", goal_type="point_ask"); db.add(goal); db.flush()
+        phase = Phase(goal_id=goal.id, title="Marked while reading", order_index=0); db.add(phase); db.flush()
+        db.add(Topic(phase_id=phase.id, title="Things I circled", description="Review queue for Point & Ask")); db.flush()
+    phase = sorted(goal.phases, key=lambda item: item.order_index)[0]
+    return phase.topics[0]
+
+
+@app.post("/api/spatial-context/{context_id}/quiz")
+def spatial_quiz_later(context_id: str, request: Request, db: Session = Depends(get_db)):
+    """'Quiz me later': turn the answered mark into a spaced-repetition review item."""
+    user = current_actor(db, request)
+    if user.role == "anonymous":
+        raise HTTPException(401, {"code": "AUTH_REQUIRED", "message": "sign in to save reviews"})
+    context = db.scalar(select(SpatialContext).where(SpatialContext.id == parse_id(context_id), owned_spatial_filter(user)))
+    if not context:
+        raise HTTPException(404, {"code": "CONTEXT_NOT_FOUND", "message": "spatial context not found"})
+    topic = ensure_point_ask_topic(db, user)
+    answer = json.loads(context.answer_json or "{}")
+    marked = "; ".join(item.get("text", "")[:120] for item in answer.get("anchors_used", [])[:2] if item.get("text"))
+    prompt = f"On '{context.page_title or 'a page'}' you circled {marked or 'a region'} and asked: {context.utterance}. Explain it again from memory."
+    item = ReviewItem(topic_id=topic.id, due_at=datetime.utcnow() + timedelta(days=1), interval_days=1, spatial_context_id=context.id, prompt=prompt[:1000])
+    db.add(item); db.commit(); db.refresh(item)
+    return {"id": str(item.id), "due_at": item.due_at.isoformat(), "prompt": item.prompt, "topic": topic.title}
+
+
+@app.patch("/api/operator/spatial/{context_id}/review")
+def operator_review_spatial(context_id: str, payload: dict, request: Request, db: Session = Depends(get_db)):
+    """Operator actions on low-confidence resolutions: confirm (trust it) or dismiss (false positive)."""
+    actor = current_user(db, request)
+    if actor.role != "operator" and settings.environment != "development": raise HTTPException(403, "operator role required")
+    context = db.get(SpatialContext, parse_id(context_id))
+    if not context:
+        raise HTTPException(404, {"code": "CONTEXT_NOT_FOUND", "message": "spatial context not found"})
+    action = str(payload.get("action", ""))
+    if action == "confirm":
+        context.review_status = "confirmed"; context.confidence = max(context.confidence, .99)
+    elif action == "dismiss":
+        context.review_status = "dismissed"
+    else:
+        raise HTTPException(400, {"code": "BAD_ACTION", "message": "action must be confirm or dismiss"})
+    db.commit()
+    return {"id": str(context.id), "review_status": context.review_status, "confidence": context.confidence}
 
 
 @app.post("/api/spatial-context/resolve")
@@ -1363,8 +1761,8 @@ def operator_snapshot(request: Request, db: Session = Depends(get_db)):
         "resources": [{"id": str(r.id), "title": r.title, "source_type": r.source_type, "status": r.status,
                        "trust_status": r.trust_status, "has_content": bool(r.content), "document_count": len(r.documents)} for r in resources],
         "ingestion_jobs": [{"id": str(j.id), "resource_id": str(j.resource_id), "kind": j.kind, "status": j.status, "progress": j.progress, "error": j.error} for j in jobs],
-        "spatial_review": [{"id": str(s.id), "goal_id": str(s.goal_id), "confidence": s.confidence,
-                            "processing_ms": s.processing_ms, "utterance_preview": s.utterance[:160]} for s in spatial],
+        "spatial_review": [{"id": str(s.id), "goal_id": str(s.goal_id) if s.goal_id else None, "confidence": s.confidence, "review_status": s.review_status,
+                            "page_title": s.page_title[:120], "processing_ms": s.processing_ms, "utterance_preview": s.utterance[:160]} for s in spatial if s.review_status == "pending"],
         "audit_log": [{"id": str(a.id), "actor_id": str(a.actor_id), "action": a.action, "entity_type": a.entity_type,
                        "entity_id": a.entity_id, "created_at": a.created_at.isoformat()} for a in audits],
         "packages": [{"id": str(item.id), "slug": item.slug, "title": item.title, "version": item.version, "status": item.status, "updated_at": item.updated_at.isoformat()} for item in packages],
@@ -1396,6 +1794,11 @@ def operator_analytics(request: Request, db: Session = Depends(get_db)):
         "mastery_buckets": {"not_started": sum(t.mastery == 0 for t in topics), "developing": sum(0 < t.mastery < .8 for t in topics), "mastered": sum(t.mastery >= .8 for t in topics)},
         "resource_trust": {status: sum(r.trust_status == status for r in resources) for status in ["verified", "unverified", "rejected"]},
         "ingestion_status": {status: sum(j.status == status for j in jobs) for status in ["queued", "processing", "completed", "failed", "retry_pending"]},
+        "spatial_cost": {"today_usd": round(sum(u.cost_usd for u in db.scalars(select(SpatialUsage).where(SpatialUsage.day == datetime.utcnow().strftime("%Y-%m-%d"))).all()), 4),
+                         "by_provider_usd": {provider: round(total, 4) for provider, total in db.execute(select(ModelEvent.provider, func.sum(ModelEvent.cost_usd)).where(ModelEvent.task == "spatial_answer").group_by(ModelEvent.provider)).all()},
+                         "asks_today": sum(u.asks for u in db.scalars(select(SpatialUsage).where(SpatialUsage.day == datetime.utcnow().strftime("%Y-%m-%d"))).all()),
+                         "review": {status: count for status, count in db.execute(select(SpatialContext.review_status, func.count()).group_by(SpatialContext.review_status)).all()},
+                         "client_versions": {version or "unknown": count for version, count in db.execute(select(ModelEvent.client_version, func.count()).where(ModelEvent.task == "spatial_answer").group_by(ModelEvent.client_version)).all()}},
         "spatial": {"count": len(contexts), "low_confidence": sum(c.confidence < .7 for c in contexts), "avg_confidence": round(sum(c.confidence for c in contexts) / len(contexts), 3) if contexts else 0, "avg_latency_ms": round(sum(latencies) / len(latencies)) if latencies else 0, "p50_latency_ms": percentile(latencies, .50), "p95_latency_ms": percentile(latencies, .95), "max_latency_ms": max(latencies) if latencies else 0},
         "quality": {"ingestion_failure_rate": round(sum(job.status in {"failed", "retry_pending"} for job in jobs) / len(jobs), 3) if jobs else 0, "trusted_resources": sum(resource.trust_status == "verified" for resource in resources), "spatial_corrections": len(corrections), "spatial_correction_rate": round(len(corrections) / len(contexts), 3) if contexts else 0},
         "assessment": {"attempts": len(attempts), "average_score": round(sum(item.score for item in attempts) / len(attempts), 3) if attempts else 0},
@@ -1420,16 +1823,16 @@ def update_resource_trust(resource_id: str, request: Request, status: str = Quer
 
 @app.get("/api/spatial-context")
 def list_spatial_context(request: Request, db: Session = Depends(get_db)):
-    user = current_user(db, request); goal_ids = select(Goal.id).where(Goal.owner_id == user.id)
-    rows = db.scalars(select(SpatialContext).where(SpatialContext.goal_id.in_(goal_ids)).order_by(SpatialContext.created_at.desc()).limit(10)).all()
-    return [{"id": str(r.id), "utterance": r.utterance, "marks": json.loads(r.marks_json), "created_at": r.created_at.isoformat()} for r in rows]
+    user = current_actor(db, request)
+    rows = db.scalars(select(SpatialContext).where(owned_spatial_filter(user)).order_by(SpatialContext.created_at.desc()).limit(25)).all()
+    return [serialize_spatial(r) for r in rows]
 
 
 @app.post("/api/spatial-context/{context_id}/correct")
 def correct_spatial_context(context_id: str, payload: SpatialCorrectionCreate, request: Request, db: Session = Depends(get_db)):
-    user = current_user(db, request)
+    user = current_actor(db, request)
     context = db.get(SpatialContext, parse_id(context_id))
-    if not context or db.scalar(select(Goal).where(Goal.id == context.goal_id, Goal.owner_id == user.id)) is None:
+    if not context or db.scalar(select(SpatialContext.id).where(SpatialContext.id == context.id, owned_spatial_filter(user))) is None:
         raise HTTPException(404, "spatial context not found")
     if not payload.marks:
         raise HTTPException(400, "at least one corrected mark is required")
@@ -1437,6 +1840,7 @@ def correct_spatial_context(context_id: str, payload: SpatialCorrectionCreate, r
     resolution["resolver"] = "user-correction-v1"
     resolution["confidence"] = max(resolution["confidence"], 0.99)
     correction = SpatialCorrection(context_id=context.id, corrected_marks_json=json.dumps(payload.marks), note=payload.note)
+    context.review_status = "corrected"
     context.marks_json = json.dumps(payload.marks)
     context.resolution_json = json.dumps(resolution)
     context.confidence = resolution["confidence"]
@@ -1453,7 +1857,7 @@ def export_student_data(request: Request, db: Session = Depends(get_db)):
     goals = db.scalars(select(Goal).where(Goal.owner_id == user.id)).all()
     goal_ids = {goal.id for goal in goals}
     resources = db.scalars(select(Resource).where(Resource.goal_id.in_(goal_ids))).all() if goal_ids else []
-    contexts = db.scalars(select(SpatialContext).where(SpatialContext.goal_id.in_(goal_ids))).all() if goal_ids else []
+    contexts = db.scalars(select(SpatialContext).where(owned_spatial_filter(user))).all()
     sessions = db.scalars(select(LearningSession).where(LearningSession.goal_id.in_(goal_ids)).order_by(LearningSession.created_at)).all() if goal_ids else []
     return {
         "user": {"id": str(user.id), "name": user.name, "email": user.email, "role": user.role},
@@ -1463,10 +1867,7 @@ def export_student_data(request: Request, db: Session = Depends(get_db)):
         "resources": [{"id": str(resource.id), "title": resource.title, "url": resource.url,
                        "source_type": resource.source_type, "content": resource.content,
                        "status": resource.status, "trust_status": resource.trust_status} for resource in resources],
-        "spatial_contexts": [{"id": str(context.id), "goal_id": str(context.goal_id),
-                              "utterance": context.utterance, "marks": json.loads(context.marks_json),
-                              "resolution": json.loads(context.resolution_json),
-                              "created_at": context.created_at.isoformat()} for context in contexts],
+        "spatial_contexts": [{**serialize_spatial(context), "resolution": json.loads(context.resolution_json)} for context in contexts],
     }
 
 
@@ -1489,7 +1890,7 @@ def delete_student_account(request: Request, confirm: str = Query(default=""), d
     db.execute(delete(MonitoringMember).where(or_(MonitoringMember.student_user_id == user.id, MonitoringMember.dashboard_id.in_(led_dashboard_ids))))
     db.execute(delete(MonitoringDashboard).where(MonitoringDashboard.leader_user_id == user.id))
     db.execute(delete(MilestoneShare).where(or_(MilestoneShare.from_user_id == user.id, MilestoneShare.to_user_id == user.id)))
-    context_ids = [context.id for context in db.scalars(select(SpatialContext).where(SpatialContext.goal_id.in_(goal_ids))).all()] if goal_ids else []
+    context_ids = [context.id for context in db.scalars(select(SpatialContext).where(owned_spatial_filter(user))).all()]
     concept_ids = [concept.id for concept in db.scalars(select(SemanticConcept).where(SemanticConcept.goal_id.in_(goal_ids))).all()] if goal_ids else []
     assessment_ids = [assessment.id for assessment in db.scalars(select(Assessment).where(Assessment.topic_id.in_(topic_ids))).all()] if topic_ids else []
     document_ids = [document.id for document in db.scalars(select(ResourceDocument).where(ResourceDocument.resource_id.in_(resource_ids))).all()] if resource_ids else []

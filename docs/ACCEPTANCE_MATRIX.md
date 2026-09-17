@@ -26,6 +26,8 @@
 | Persistent semantic concepts and topic alignment | migration `0006_semantic_alignment`, `/api/goals/{goal_id}/semantic-concepts` |
 | Knowledge map | `/api/knowledge-map` and learning-loop acceptance test |
 | Spatial Context normalization | spatial preview and correction tests |
+| Point & Ask anywhere (extension) | `services/api/tests/test_spatial_ask.py` (`/api/spatial-context/ask`, follow-ups, ownership, stream), `apps/extension/tests/geometry.test.mjs`, dev harness `apps/extension/dev/harness.html` |
+| Resolver parity client ↔ server | `packages/spatial-core/cases/*.json` via `pytest packages/spatial-core` (Python + node) |
 | Spatial fast-path evaluation | `scripts/evaluate_spatial.py` (anchor expectation accuracy and p95 latency thresholds) |
 | Student correction feedback | `/api/spatial-context/{id}/correct` |
 | Operator privacy and quality telemetry | `/api/operator/snapshot`, `/api/operator/analytics` |

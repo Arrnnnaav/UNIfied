@@ -1,0 +1,6 @@
+# CPU speech + OCR for Point & Ask "Power mode" / the audio-worker container. Not needed by the slim API.
+faster-whisper>=1.1
+pocket-tts>=0.4
+rapidocr-onnxruntime>=1.4
+pillow>=10
+numpy

@@ -222,6 +222,9 @@ class ReviewItem(Base):
     due_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
     interval_days: Mapped[int] = mapped_column(Integer, default=1)
     status: Mapped[str] = mapped_column(String(30), default="due")
+    # "Quiz me later" from Point & Ask: the mark this review came from and the prompt to re-ask
+    spatial_context_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("spatial_contexts.id"), nullable=True, index=True)
+    prompt: Mapped[str] = mapped_column(Text, default="")
     topic: Mapped[Topic] = relationship()
 
 
@@ -263,21 +266,41 @@ class ModelEvent(Base):
     status: Mapped[str] = mapped_column(String(30), index=True)
     latency_ms: Mapped[int] = mapped_column(Integer, default=0)
     confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
+    client_version: Mapped[str] = mapped_column(String(40), default="")
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, index=True)
 
 
 class SpatialContext(Base):
     __tablename__ = "spatial_contexts"
     id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
-    goal_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("goals.id"), index=True)
+    goal_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("goals.id"), index=True, nullable=True)
+    # Marks made anywhere (browser extension) may exist before the student has a goal.
+    owner_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey("users.id"), index=True, nullable=True)
     utterance: Mapped[str] = mapped_column(Text)
     marks_json: Mapped[str] = mapped_column(Text)
     source: Mapped[str] = mapped_column(String(30), default="study")
+    page_url: Mapped[str] = mapped_column(String(2000), default="")
+    page_title: Mapped[str] = mapped_column(String(500), default="")
+    answer_json: Mapped[str] = mapped_column(Text, default="{}")
+    # operator review of low-confidence resolutions: pending | confirmed | corrected | dismissed
+    review_status: Mapped[str] = mapped_column(String(20), default="pending")
     sensitivity_class: Mapped[str] = mapped_column(String(30), default="private")
     confidence: Mapped[float] = mapped_column(Float, default=0.0)
     resolution_json: Mapped[str] = mapped_column(Text, default="{}")
     processing_ms: Mapped[int] = mapped_column(Integer, default=0)
     created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+
+
+class SpatialUsage(Base):
+    """Per-owner daily counters for the zero-install quota and the cost cap."""
+    __tablename__ = "spatial_usage"
+    __table_args__ = (UniqueConstraint("owner_id", "day", name="uq_spatial_usage_owner_day"),)
+    id: Mapped[uuid.UUID] = mapped_column(GUID(), primary_key=True, default=uuid.uuid4)
+    owner_id: Mapped[uuid.UUID] = mapped_column(ForeignKey("users.id"), index=True)
+    day: Mapped[str] = mapped_column(String(10), index=True)
+    asks: Mapped[int] = mapped_column(Integer, default=0)
+    cost_usd: Mapped[float] = mapped_column(Float, default=0.0)
 
 
 class SpatialCorrection(Base):
