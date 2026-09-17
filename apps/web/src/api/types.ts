@@ -1,0 +1,13 @@
+export type Role = 'student' | 'operator' | 'anonymous';
+export interface Me { id: string; name: string; email: string; role: Role; student_id: string | null; has_goals: boolean; profile_complete: boolean }
+export interface AuthResponse { access_token: string; token_type: string; user: { id: string; student_id: string | null; name: string; role: Role }; adopted_marks?: number }
+export interface Topic { id: string; title: string; description: string; difficulty: string; estimated_minutes: number; progress: number; mastery: number; phase_id: string; resource_count: number }
+export interface Phase { id: string; title: string; order_index: number; topics: Topic[] }
+export interface Goal { id: string; title: string; goal_type: string; target_date: string | null; weekly_hours: number; status: string; phases: Phase[]; resources?: unknown[] }
+export interface Session { id: string; goal_id: string; topic_id: string | null; topic: string | null; kind: string; status: string; planned_minutes: number; actual_minutes: number; notes: string; started_at: string | null; completed_at: string | null; created_at: string }
+export interface TodayItem { topic_id: string; action: string; kind: string; estimated_minutes: number; priority: string; reason: string; mastery: number; dependencies: string[] }
+export interface SpatialReview { id: string; spatial_context_id: string; title: string; minutes: number; reason: string; due_at: string; kind: string }
+export interface Dashboard { user: { name: string }; goal: Goal | null; today: TodayItem[]; spatial_reviews: SpatialReview[]; sessions: Session[]; plan_status: Record<string, unknown>; stats: { topics: number; mastered: number; average_mastery: number; [k: string]: unknown } }
+export interface SpatialContext { id: string; goal_id: string | null; utterance: string; marks: unknown[]; source: string; confidence: number; review_status: string; page: { url: string; title: string; surface: string }; answer: { text?: string; history?: unknown[]; anchors_used?: { text: string }[]; sources?: { id: number; url: string; title: string }[]; meta?: { provider?: string; model?: string } }; turns: number; created_at: string }
+export interface Profile { education_stage: string; graduation_year: number | null; current_skill_level: string; known_skills: string[]; learning_modes: string[]; preferred_pace: string; constraints: string; college_name: string; college_year: string; branch: string; college_id: string }
+export interface ReviewItem { id: string; topic_id: string; topic: string; due_at: string; interval_days: number; prompt: string; spatial_context_id: string | null }
