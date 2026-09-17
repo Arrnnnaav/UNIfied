@@ -56,7 +56,7 @@ apps/web/
   index.html  vite.config.ts  tailwind.config.ts  tsconfig.json  amplify.yml  package.json
   src/main.tsx  src/App.tsx (router)  src/styles.css (tokens, grain, fonts)
   src/api/client.ts        fetch wrapper: base URL, bearer, X-Device-ID, JSON errors {code,message}, 401 -> /login
-  src/api/sse.ts           readSse(response, onEvent) shared by Tutor + Point & Ask
+  src/api/sse.ts           readSse(fetch Response body, onEvent, AbortSignal) shared by Tutor + Point & Ask; aborted on unmount
   src/api/types.ts         response types for the endpoints used
   src/auth/                AuthProvider (me query), useAuth(), RequireStudent, RequireOperator, storage
   src/components/          Card Stat Tag Button Field Select Table EmptyState Toast Modal Spinner PageHeader
@@ -85,8 +85,8 @@ apps/web/
 | `/operator/users` `/resources` `/spatial` `/packages` `/analytics` `/monitoring` | role=operator | Operator pages |
 | `*` | — | 404 |
 
-Guards: `RequireStudent` = token present and `/api/auth/me` ok (any role). `RequireOperator` = role ==
-`operator`; other roles see "This account is not an operator" with sign-out. Student sidebar never links
+Roles in the backend are exactly `student | operator | anonymous`. Guards: `RequireStudent` = token present and
+`/api/auth/me` ok (any role). `RequireOperator` = role == `operator`; other roles see "This account is not an operator" with sign-out. Student sidebar never links
 to `/operator`. Sign-out = clear token + query cache → `/login`.
 
 ## Pages and the endpoints they use
@@ -95,7 +95,8 @@ to `/operator`. Sign-out = clear token + query cache → `/login`.
   college fields moved to onboarding). Errors shown inline. Register → `/onboarding`.
 - **Onboarding**: step 1 `PATCH /api/me/profile` (education_stage, college_name, college_year, branch,
   current_skill_level, learning_modes, preferred_pace); step 2 `POST /api/goals` (title, goal_type,
-  weekly_hours, target_date) → invalidate `me` → `/`. "Skip" allowed on step 1 only.
+  weekly_hours, target_date) → invalidate `me` → `/`. "Skip" on step 1 jumps to step 2; step 2 cannot be skipped
+  (Today requires a goal).
 - **Today**: `GET /api/dashboard` (stats, today, sessions, spatial_reviews, plan_status),
   `GET /api/recommendations`, `POST/PATCH /api/learning-sessions`, `POST /api/review/{id}/complete`.
 - **Roadmap**: goal from dashboard; `PATCH /api/topics/{id}/progress`, `POST /api/topics`,
@@ -122,9 +123,11 @@ one action that fills it.
 
 ## Data & state
 
-TanStack Query for all reads (keys = endpoint path); mutations invalidate the affected keys. Auth token
-in `localStorage.studyos_token`; device id in `localStorage.studyos_device` (uuid, for anonymous Point &
-Ask history before sign-in, sent as `X-Device-ID`). No global store beyond `AuthProvider`.
+TanStack Query for all reads with array keys (`['me']`, `['dashboard']`, `['goals', id, 'coverage']`,
+`['spatial']`, `['operator', 'snapshot']`); mutations invalidate by prefix. Auth token in
+`localStorage.studyos_token`. The web app never sends `X-Device-ID`: it always requires sign-in;
+anonymous Point & Ask history lives in the extension and is adopted server-side at login. No global
+store beyond `AuthProvider`.
 
 ## Error handling
 
@@ -150,8 +153,9 @@ domain in `deploy_aws.ps1` (new `-WebOrigin` param). Local dev: `npm run dev` wi
 
 ## Task order
 
-1. Scaffold, tokens, fonts, component kit, layouts, router with placeholders.
-2. `client.ts`, `sse.ts`, AuthProvider, guards, Login/Register, `/api/auth/me`, `WEB_ORIGINS`.
+1. Backend: `/api/auth/me`, `WEB_ORIGINS` (with tests).
+2. Scaffold, tokens, fonts, component kit, layouts, router with placeholders; `client.ts`, `sse.ts`,
+   AuthProvider, guards, Login/Register.
 3. Onboarding wizard.
 4. Today, Roadmap, Resources.
 5. Tutor, Point & Ask (extension detect, quiz later).
