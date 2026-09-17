@@ -1,4 +1,4 @@
-.PHONY: infra up down api worker migrate seed test test-backend test-extension test-spatial-core lint build-web build-operator sync-spatial sync-spatial-check package-extension audio
+.PHONY: infra up down api worker migrate seed test test-backend test-extension test-spatial-core lint build-web test-web build-operator sync-spatial sync-spatial-check package-extension audio
 
 infra:
 	docker compose up -d postgres redis minio minio-init
@@ -38,6 +38,9 @@ lint:
 
 build-web:
 	cd apps/web && npm ci && npm run build
+
+test-web:
+	cd apps/web && npm test
 
 build-operator:
 	cd apps/operator && npm ci && npm run build
