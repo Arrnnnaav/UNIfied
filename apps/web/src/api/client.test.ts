@@ -1,4 +1,4 @@
-import { api, ApiError, setUnauthorizedHandler } from './client';
+import { api, apiStream, ApiError, setUnauthorizedHandler } from './client';
 import { setToken } from '@/auth/storage';
 import { mockFetch } from '@/test/mockFetch';
 
@@ -26,4 +26,9 @@ test('401 clears token and calls the unauthorized handler', async () => {
   await expect(api('/api/auth/me')).rejects.toBeInstanceOf(ApiError);
   expect(localStorage.getItem('studyos_token')).toBeNull();
   expect(handler).toHaveBeenCalled();
+});
+
+test('apiStream converts a rejected fetch into a NETWORK ApiError', async () => {
+  globalThis.fetch = vi.fn().mockRejectedValue(new TypeError('Failed to fetch'));
+  await expect(apiStream('/api/x', {}, undefined)).rejects.toMatchObject({ code: 'NETWORK' });
 });
