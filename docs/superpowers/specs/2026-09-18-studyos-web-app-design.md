@@ -55,7 +55,7 @@ Point & Ask keeps pink `#ff3d7f` only for the mark stroke in screenshots; in the
 apps/web/
   index.html  vite.config.ts  tailwind.config.ts  tsconfig.json  amplify.yml  package.json
   src/main.tsx  src/App.tsx (router)  src/styles.css (tokens, grain, fonts)
-  src/api/client.ts        fetch wrapper: base URL, bearer, X-Device-ID, JSON errors {code,message}, 401 -> /login
+  src/api/client.ts        fetch wrapper: base URL, bearer, JSON errors {code,message}, 401 -> /login
   src/api/sse.ts           readSse(fetch Response body, onEvent, AbortSignal) shared by Tutor + Point & Ask; aborted on unmount
   src/api/types.ts         response types for the endpoints used
   src/auth/                AuthProvider (me query), useAuth(), RequireStudent, RequireOperator, storage
