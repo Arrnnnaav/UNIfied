@@ -4,7 +4,9 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
+    model_config = SettingsConfigDict(
+        env_file=".env", env_file_encoding="utf-8", extra="ignore"
+    )
 
     environment: str = "development"
 
@@ -12,6 +14,9 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60 * 24
     operator_bootstrap_token: str | None = None
+
+    # Browser origins allowed to call the API (React app on Vite dev server / Amplify). Comma separated.
+    web_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
 
     # SQLite keeps the vertical slice runnable without Docker; production uses Postgres + pgvector.
     database_url: str = "sqlite:///./learning_platform.db"
@@ -56,7 +61,9 @@ class Settings(BaseSettings):
     openai_vision_model: str | None = "gpt-4o-mini"
     anthropic_vision_model: str | None = "claude-sonnet-5"
     spatial_ocr: bool = True
-    spatial_timeout_seconds: float = 30.0  # per provider; a slow cloud provider falls through to the next one
+    spatial_timeout_seconds: float = (
+        30.0  # per provider; a slow cloud provider falls through to the next one
+    )
     # Zero-install B2C guardrails
     spatial_anonymous_daily_limit: int = 20
     spatial_user_daily_limit: int = 200

@@ -777,7 +777,7 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Unified Learning Platform", version="0.1.0", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173", "http://127.0.0.1:5173"],
+    allow_origins=[o.strip() for o in settings.web_origins.split(",") if o.strip()],
     allow_origin_regex=r"^(chrome|moz)-extension://.*$",
     allow_methods=["*"],
     allow_headers=["*"],
@@ -1624,6 +1624,34 @@ def login(payload: LoginRequest, request: Request, db: Session = Depends(get_db)
             "name": user.name,
             "role": user.role,
         },
+    }
+
+
+@app.get("/api/auth/me")
+def auth_me(request: Request, db: Session = Depends(get_db)):
+    """Who am I + onboarding state; the web app decides login/onboarding/app from this alone."""
+    user = current_user(db, request)
+    profile = db.scalar(select(LearnerProfile).where(LearnerProfile.user_id == user.id))
+    profile_complete = bool(
+        profile
+        and (
+            profile.education_stage not in {"", "other"}
+            or profile.college_name
+            or profile.college_year
+            or profile.branch
+        )
+    )
+    has_goals = (
+        db.scalar(select(Goal.id).where(Goal.owner_id == user.id).limit(1)) is not None
+    )
+    return {
+        "id": str(user.id),
+        "name": user.name,
+        "email": user.email,
+        "role": user.role,
+        "student_id": user.student_id,
+        "has_goals": has_goals,
+        "profile_complete": profile_complete,
     }
 
 
