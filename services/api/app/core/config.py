@@ -17,6 +17,8 @@ class Settings(BaseSettings):
 
     # Browser origins allowed to call the API (React app on Vite dev server / Amplify). Comma separated.
     web_origins: str = "http://localhost:5173,http://127.0.0.1:5173"
+    # Where `/` redirects to once the React app is hosted (e.g. https://main.xxx.amplifyapp.com).
+    web_app_url: str | None = None
 
     # SQLite keeps the vertical slice runnable without Docker; production uses Postgres + pgvector.
     database_url: str = "sqlite:///./learning_platform.db"

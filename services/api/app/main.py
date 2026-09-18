@@ -22,7 +22,7 @@ from fastapi import (
     Response,
     UploadFile,
 )
-from fastapi.responses import StreamingResponse
+from fastapi.responses import RedirectResponse, StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import delete, select, or_, func
@@ -4891,6 +4891,15 @@ def delete_student_account(
     db.delete(user)
     db.commit()
     return {"status": "deleted"}
+
+
+@app.get("/")
+def root():
+    """The React web app (apps/web) is the product surface; the API only serves `/api/*` plus the
+    Point & Ask landing under /point-and-ask/. Redirect to the hosted app when it is configured."""
+    if settings.web_app_url:
+        return RedirectResponse(settings.web_app_url, status_code=307)
+    return {"service": "StudyOS API", "web": "run apps/web (npm run dev) or build and serve apps/web/dist", "landing": "/point-and-ask/", "health": "/api/health"}
 
 
 static_dir = Path(__file__).parent / "static"

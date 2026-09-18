@@ -30,6 +30,9 @@ def main() -> int:
     api_base = ""
     if "--api-base" in sys.argv:
         api_base = sys.argv[sys.argv.index("--api-base") + 1].rstrip("/")
+    dashboard_url = ""
+    if "--dashboard-url" in sys.argv:
+        dashboard_url = sys.argv[sys.argv.index("--dashboard-url") + 1].rstrip("/") + "/"
     manifest = json.loads((source / "manifest.json").read_text(encoding="utf-8"))
     tests = source / "tests/geometry.test.mjs"
     if tests.exists():
@@ -51,10 +54,15 @@ def main() -> int:
             rel = path.relative_to(source)
             if path.is_dir() or rel.parts[0] in SKIP_DIRS or path.name in SKIP_FILES:
                 continue
-            if path.name == "config.js" and api_base:
+            if path.name == "config.js" and (api_base or dashboard_url):
                 text = path.read_text(encoding="utf-8")
-                text = re.sub(r"apiBase: '[^']*'", f"apiBase: '{api_base}'", text)
-                text = re.sub(r"dashboardUrl: '[^']*'", f"dashboardUrl: '{api_base}/'", text)
+                if api_base:
+                    text = re.sub(r"apiBase: '[^']*'", f"apiBase: '{api_base}'", text)
+                text = re.sub(
+                    r"dashboardUrl: '[^']*'",
+                    f"dashboardUrl: '{dashboard_url or (api_base + '/')}'",
+                    text,
+                )
                 bundle.writestr(str(rel).replace(os.sep, "/"), text)
                 continue
             bundle.write(path, str(rel).replace(os.sep, "/"))

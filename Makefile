@@ -39,6 +39,9 @@ lint:
 build-web:
 	cd apps/web && npm ci && npm run build
 
+web:
+	cd apps/web && npm run dev
+
 test-web:
 	cd apps/web && npm test
 

@@ -18,6 +18,14 @@ py -3.12 -m uvicorn app.main:app --reload --port 8000
 
 Open <http://127.0.0.1:8000>.
 
+The primary student/operator UI is the React app in `apps/web` ("candlelit ink" design system):
+
+```powershell
+cd apps/web; npm ci; npm run dev   # http://localhost:5173 — proxies /api to :8000
+```
+
+See `docs/WEB_APP.md` for structure, tests, and the Amplify deployment path.
+
 The default development database is SQLite so isolated tests and a quick local demo work without Docker. The included Compose stack is the production-shaped path for PostgreSQL/pgvector, Redis, MinIO, migrations, the API, worker, and static student/operator shell; it has been smoke-tested live in production mode with a local Ollama tutor route.
 
 For production Compose, copy `.env.example` to `.env`, replace the JWT secret, and configure `LOCAL_LLM_BASE_URL`, `OPENAI_API_KEY`, or `ANTHROPIC_API_KEY`. Compose forwards these settings to the API; production intentionally refuses placeholder authentication or an unconfigured tutor route.

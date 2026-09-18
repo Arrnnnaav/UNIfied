@@ -13,6 +13,7 @@ param(
   [string]$Repo = "studyos-api",
   [string]$DatabaseUrl = "",
   [string]$JwtSecret = "",
+  [string]$WebOrigin = "",
   [string]$BedrockModel = "amazon.nova-lite-v1:0",
   [string]$Cpu = "1 vCPU",
   [string]$Memory = "2 GB"
@@ -55,6 +56,8 @@ $envVars = [ordered]@{
   BEDROCK_MODEL = $BedrockModel; BEDROCK_VISION_MODEL = $BedrockModel
   SPATIAL_TTS = "0"; SPATIAL_OCR = "0"
   SPATIAL_ANONYMOUS_DAILY_LIMIT = "20"; SPATIAL_USER_DAILY_LIMIT = "200"; SPATIAL_DAILY_COST_CAP_USD = "0.25"
+  WEB_ORIGINS = $(if ($WebOrigin) { "$WebOrigin,http://localhost:5173" } else { "http://localhost:5173" })
+  WEB_APP_URL = $WebOrigin
 }
 $source = @{
   ImageRepository = @{
